@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>岩石學判斷手冊 — Su</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #191c1e;
+    --panel: #22262a;
+    --panel-raised: #2a2f34;
+    --line: #3a4045;
+    --text: #e6e1d6;
+    --text-dim: #9aa0a3;
+    --interference: #5b8aa0;
+    --interference-soft: rgba(91,138,160,0.14);
+    --ochre: #c88a45;
+    --mn: #9a4d3d;
+    --mn-soft: rgba(154,77,61,0.15);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'IBM Plex Sans', sans-serif;
+    line-height:1.6;
+    font-size:16px;
+  }
+  h1,h2,h3{
+    font-family:'Spectral', serif;
+    font-weight:600;
+    letter-spacing:0.01em;
+    margin:0 0 0.5em 0;
+  }
+  .app{
+    display:flex;
+    min-height:100vh;
+  }
+  nav.side{
+    width:220px;
+    flex-shrink:0;
+    background:var(--panel);
+    border-right:1px solid var(--line);
+    padding:28px 0;
+    position:sticky;
+    top:0;
+    height:100vh;
+    overflow-y:auto;
+  }
+  nav.side .brand{
+    padding:0 22px 20px 22px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:14px;
+  }
+  nav.side .brand h1{
+    font-size:1.15rem;
+    color:var(--text);
+  }
+  nav.side .brand p{
+    margin:4px 0 0 0;
+    font-size:0.8rem;
+    color:var(--text-dim);
+  }
+  nav.side button.navlink{
+    display:block;
+    width:100%;
+    text-align:left;
+    background:none;
+    border:none;
+    color:var(--text-dim);
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:0.92rem;
+    padding:11px 22px;
+    cursor:pointer;
+    border-left:3px solid transparent;
+    transition:color .15s, border-color .15s, background .15s;
+  }
+  nav.side button.navlink:hover{
+    color:var(--text);
+    background:rgba(255,255,255,0.03);
+  }
+  nav.side button.navlink.active{
+    color:var(--interference);
+    border-left-color:var(--interference);
+    background:var(--interference-soft);
+  }
+  main{
+    flex:1;
+    max-width:760px;
+    padding:48px 40px 100px 40px;
+  }
+  section.page{display:none;}
+  section.page.active{display:block;}
+  .kicker{
+    color:var(--ochre);
+    font-size:0.82rem;
+    margin-bottom:10px;
+  }
+  .lede{
+    color:var(--text-dim);
+    font-size:1rem;
+    max-width:60ch;
+    margin-bottom:32px;
+  }
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:20px 22px;
+    margin-bottom:16px;
+  }
+  .step{
+    display:flex;
+    gap:16px;
+    padding:16px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .step:last-child{border-bottom:none;}
+  .step-check{
+    flex-shrink:0;
+    width:26px;
+    height:26px;
+    border-radius:50%;
+    border:1.5px solid var(--text-dim);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    font-size:0.85rem;
+    color:transparent;
+    margin-top:2px;
+    transition:all .15s;
+  }
+  .step-check.done{
+    border-color:var(--interference);
+    background:var(--interference);
+    color:var(--bg);
+  }
+  .step-body h3{
+    font-size:1.02rem;
+    margin-bottom:6px;
+  }
+  .step-body p{
+    color:var(--text-dim);
+    font-size:0.93rem;
+    margin:0;
+  }
+  .progress-bar{
+    height:4px;
+    background:var(--line);
+    border-radius:2px;
+    overflow:hidden;
+    margin-bottom:24px;
+  }
+  .progress-fill{
+    height:100%;
+    background:var(--interference);
+    width:0%;
+    transition:width .3s;
+  }
+  .reset-link{
+    background:none;border:none;color:var(--text-dim);
+    font-size:0.82rem;text-decoration:underline;cursor:pointer;
+    padding:0; margin-top:14px;
+  }
+  .split{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+    margin-bottom:24px;
+  }
+  @media (max-width:640px){ .split{grid-template-columns:1fr;} }
+  .split .col{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:18px 20px;
+  }
+  .col.vein{border-top:3px solid var(--ochre);}
+  .col.dendrite{border-top:3px solid var(--mn);}
+  .col h3{font-size:1.05rem;}
+  .col ul{padding-left:18px;margin:10px 0 0 0;color:var(--text-dim);font-size:0.92rem;}
+  .col li{margin-bottom:6px;}
+  .glossary-item{
+    border-bottom:1px solid var(--line);
+    padding:16px 0;
+  }
+  .glossary-item:first-child{padding-top:0;}
+  .glossary-item:last-child{border-bottom:none;}
+  .term-row{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    cursor:pointer;
+  }
+  .term-en{
+    font-weight:600;
+    font-size:0.98rem;
+  }
+  .term-zh{
+    color:var(--text-dim);
+    font-size:0.86rem;
+  }
+  .term-arrow{
+    margin-left:auto;
+    color:var(--text-dim);
+    transition:transform .15s;
+    font-size:0.8rem;
+  }
+  .glossary-item.open .term-arrow{transform:rotate(90deg);}
+  .term-detail{
+    display:none;
+    padding-top:10px;
+    font-size:0.92rem;
+    color:var(--text-dim);
+  }
+  .glossary-item.open .term-detail{display:block;}
+  .term-detail .src{
+    display:block;
+    margin-top:8px;
+    font-size:0.8rem;
+    color:var(--interference);
+  }
+  .tag{
+    display:inline-block;
+    font-size:0.72rem;
+    padding:2px 8px;
+    border-radius:10px;
+    background:var(--mn-soft);
+    color:var(--mn);
+    margin-left:8px;
+  }
+  .tag.geom{background:var(--interference-soft);color:var(--interference);}
+  .note{
+    background:var(--mn-soft);
+    border-left:3px solid var(--mn);
+    padding:12px 16px;
+    border-radius:0 4px 4px 0;
+    font-size:0.9rem;
+    color:var(--text);
+    margin:20px 0;
+  }
+  .link-list a{
+    color:var(--interference);
+    text-decoration:none;
+    font-size:0.88rem;
+  }
+  .link-list a:hover{text-decoration:underline;}
+  .link-list li{margin-bottom:8px;}
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="side">
+    <div class="brand">
+      <h1>岩石學判斷手冊</h1>
+      <p>變質岩薄片辨識參考</p>
+    </div>
+    <button class="navlink active" data-page="decision">岩理判斷流程</button>
+    <button class="navlink" data-page="veindendrite">脈 vs 樹枝狀</button>
+    <button class="navlink" data-page="grain">顆粒描述架構</button>
+    <button class="navlink" data-page="glossary">礦物鑑定詞彙</button>
+  </nav>
+
+  <main>
+
+    <!-- PAGE 1: Decision tree -->
+    <section class="page active" id="page-decision">
+      <div class="kicker">STEP-BY-STEP</div>
+      <h2>Granoblastic 岩理判斷流程</h2>
+      <p class="lede">在PPL/XPL薄片影像上，依序判斷是否屬於粒狀變晶結構（granoblastic texture），以及屬於哪一種次類型。點選圓圈標記已完成的步驟。</p>
+
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+      <div class="card" id="stepList"></div>
+      <button class="reset-link" id="resetSteps">重設進度</button>
+
+      <div class="note">
+        Foliated 與 porphyroblastic 都要先排除，才能確認是 granoblastic——這兩者不是granoblastic的變體，而是互斥的獨立分類。
+      </div>
+    </section>
+
+    <!-- PAGE 2: Vein vs Dendrite -->
+    <section class="page" id="page-veindendrite">
+      <div class="kicker">TERMINOLOGY</div>
+      <h2>脈（Vein）vs 樹枝狀（Dendrite）</h2>
+      <p class="lede">一個描述空間構造，一個描述生長樣式——兩者不互斥，可以同時用於同一個特徵的不同層面。</p>
+
+      <div class="split">
+        <div class="col vein">
+          <h3>Vein <span class="tag geom">構造/空間關係</span></h3>
+          <p style="color:var(--text-dim);font-size:0.92rem;margin:8px 0 0 0;">岩石中一個明確、板狀（sheetlike）的結晶礦物體，由含礦質水溶液在既有裂隙內沉澱形成。</p>
+          <ul>
+            <li>重點：填滿一個既有的裂隙/破裂空間</li>
+            <li>幾何上是線狀但實體、有明確邊界</li>
+            <li>脈內部可以是任何礦物組成（石英脈、方解石脈、氧化錳脈皆可）</li>
+            <li>通常與熱液循環（hydrothermal circulation）有關</li>
+          </ul>
+        </div>
+        <div class="col dendrite">
+          <h3>Dendrite <span class="tag">生長樣式</span></h3>
+          <p style="color:var(--text-dim);font-size:0.92rem;margin:8px 0 0 0;">元素或礦物質從一個起點向外遷移、分岔延伸所形成的樹狀構造，源自不同方向生長速率不均等。</p>
+          <ul>
+            <li>重點：分形（fractal）分岔的生長樣式本身</li>
+            <li>常見於層面、節理面等「表面」，多為二維構造</li>
+            <li>結晶度通常很低，顯示由膠體顆粒沉澱形成</li>
+            <li>不一定發生在vein裡，也可以是單純的表面塗覆（surface coating）</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size:1rem;">如何描述同一個特徵</h3>
+        <p style="color:var(--text-dim);font-size:0.92rem;margin-top:6px;">若黑色構造呈近垂直、連續、貫穿全片，先以 <strong style="color:var(--text)">vein</strong> 描述整體幾何構造（裂隙填充的線狀體）；若脈內部或脈壁邊緣有分岔、羽毛狀細部紋理，再加上 <strong style="color:var(--text)">dendritic texture within a vein</strong> 描述生長樣式。兩者是不同尺度、不同面向的描述，可以並存。</p>
+      </div>
+    </section>
+
+    <!-- PAGE 3: Grain texture -->
+    <section class="page" id="page-grain">
+      <div class="kicker">DESCRIPTIVE FRAMEWORK</div>
+      <h2>顆粒狀特徵描述架構</h2>
+      <p class="lede">依觀察層次由整體到細部：大小 → 形狀 → 邊界關係 → 整體分類。</p>
+
+      <div class="card">
+        <h3 style="font-size:1rem;">1. 顆粒大小 Grain size</h3>
+        <p style="color:var(--text-dim);font-size:0.92rem;">Fine / medium / coarse-grained。變質溫壓越高，再結晶後顆粒傾向越粗——可作為變質強度的間接指標。</p>
+      </div>
+      <div class="card">
+        <h3 style="font-size:1rem;">2. 顆粒形狀 Crystal habit</h3>
+        <p style="color:var(--text-dim);font-size:0.92rem;">Euhedral（自形）／Subhedral（半自形）／Anhedral（他形）；Equant（等軸狀）vs 拉長狀。Granoblastic結構中礦物通常anhedral到subhedral、等軸狀，不特別發展自己特有的晶形。</p>
+      </div>
+      <div class="card">
+        <h3 style="font-size:1rem;">3. 顆粒邊界關係 Grain boundaries</h3>
+        <p style="color:var(--text-dim);font-size:0.92rem;">Straight（平直）vs Sutured/curved（縫合狀/彎曲）；Triple junction（三連點，理想狀態下交角120°）；Interlocking mosaic（交鎖鑲嵌狀）。</p>
+      </div>
+      <div class="card">
+        <h3 style="font-size:1rem;">4. 整體分類</h3>
+        <p style="color:var(--text-dim);font-size:0.92rem;">Equigranular（等粒狀）vs Inequigranular（不等粒狀）。若有獨立大顆粒散布於細粒基質，改用 Porphyroblastic texture + Porphyroblast，與granoblastic互斥。</p>
+      </div>
+
+      <div class="note">
+        這套架構僅適用於PPL/XPL顯微照片——需要能看清個別顆粒邊界、消光關係與有無定向排列。巨觀掃描影像（如手標本或平台掃描）解析度不足，無法套用。
+      </div>
+    </section>
+
+    <!-- PAGE 4: Glossary -->
+    <section class="page" id="page-glossary">
+      <div class="kicker">GLOSSARY</div>
+      <h2>Mn 氧化物 / 不透明礦物鑑定關鍵字</h2>
+      <p class="lede">點選展開定義與出處。具體礦物名稱在沒有反射光顯微鏡或XRD/Raman資料前，建議用「可能」、「假設為」等限定詞。</p>
+
+      <div class="card" id="glossaryList"></div>
+
+      <h3 style="margin-top:32px;font-size:1.05rem;">延伸閱讀（含照片）</h3>
+      <ul class="link-list" style="list-style:none;padding:0;">
+        <li><a href="https://www.alexstrekeisen.it/english/meta/granoblastic.php" target="_blank">Alex Strekeisen — Granoblastic texture（含各次類型顯微照片）</a></li>
+        <li><a href="https://www.virtualmicroscope.org/teaching-resources/manual-of-minerals/textures" target="_blank">Virtual Microscope — Textures（granoblastic/inoblastic/hornfelsic對照）</a></li>
+        <li><a href="https://en.wikipedia.org/wiki/Granoblastic" target="_blank">Wikipedia — Granoblastic</a></li>
+        <li><a href="https://www.mindat.org/min-26645.html" target="_blank">Mindat — Manganese Dendrites</a></li>
+        <li><a href="https://opengeology.org/Mineralogy/5-optical-mineralogy/" target="_blank">OpenGeology — Optical Mineralogy（不透明礦物判斷）</a></li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<script>
+const steps = [
+  {t:"先判斷有無定向排列（foliated vs non-foliated）", d:"旋轉載物台觀察整體視野：雲母、角閃石等片狀或柱狀礦物是否有一致的平行排列？若有明顯定向，屬於foliated系列（lepidoblastic、nematoblastic、schistose等），不是granoblastic。若礦物排列雜亂無規律方向，才繼續往下判斷。"},
+  {t:"檢查整體顆粒大小是否均勻（equigranular vs porphyroblastic）", d:"掃視整個視野：顆粒大小是否大致相近？若有少數明顯大於基質顆粒的獨立礦物（porphyroblast）散布其中，應優先歸類為porphyroblastic texture，而非granoblastic——兩者互斥。"},
+  {t:"觀察顆粒形狀（euhedral / subhedral / anhedral）", d:"在PPL下逐一檢視顆粒邊緣是否呈現該礦物特有的結晶面。Granoblastic結構中礦物通常anhedral到subhedral、equant（等軸狀），而非拉長或針狀。"},
+  {t:"檢查顆粒邊界的幾何型態", d:"在高倍鏡下沿相鄰顆粒交界線觀察：邊界平直、微彎曲，還是明顯不規則、鋸齒狀？尋找三顆粒相交的頂點（triple junction），量測交角是否接近120度。"},
+  {t:"依邊界規則程度分類次類型", d:"平直+三連點清楚接近120°→polygonal；邊界略呈波狀→interlobate；完全不規則、皆anhedral→amoeboid；略呈拉長柱狀但仍交鎖排列→decussate。"},
+  {t:"在XPL下確認無系統性消光", d:"切換正交偏光，旋轉載物台360度。若整體消光呈隨機、無規律分布（而非集體或條帶狀消光），佐證確實缺乏優選方位排列，支持granoblastic判斷。"},
+  {t:"與已知代表性岩石對照", d:"Granoblastic典型見於石英岩、大理岩、角岩。若樣本礦物組成差異很大（如Mn矽酸鹽/氧化物組合），仍可用granoblastic描述顆粒排列，但下結論前建議對照文獻中已發表的同類岩石薄片照片。"}
+];
+
+const glossary = [
+  {en:"Dendrite / Dendritic mineral growth", zh:"樹枝狀礦物生長", detail:"樹狀、分岔的礦物生長型態，因不同方向結晶速率不均等（各向異性生長）所形成，常見於溫度或溶液濃度快速變化的環境。名稱源自希臘文「dendron」（樹）。", src:"Geology In — Dendritic Crystal and Minerals"},
+  {en:"Mn-oxide dendrite", zh:"錳氧化物樹枝狀構造", detail:"低溫水溶液沿岩石中窄通道（裂隙、層理面）遷移沉澱所形成的黑色樹枝狀構造，常見於滲透性差異大、裂隙發育的細粒沉積岩。相較之下，鐵氧化物形成的類似紋樣通常較擴散、分岔不鮮明。黑色樹枝狀薄膜視覺上難以區分具體礦物種類，可能由birnessite、coronadite、cryptomelane、hollandite、romanèchite、todorokite等組成。", src:"Sandatlas；Mindat — Manganese Dendrites（原始文獻 Potter & Rossman, 1979, American Mineralogist 64:1219–1226）"},
+  {en:"Todorokite / Hausmannite / Braunite / Birnessite / Romanechite / Hollandite / Cryptomelane / Coronadite", zh:"錳氧化物/氫氧化物家族礦物", detail:"皆為錳氧化物/氫氧化物家族成員，常見於樹枝狀或脈狀次生沉澱。多種錳礦物化學組成相近、X光繞射圖譜相似，加上樹枝狀構造結晶度差，XRD有時難以有效鑑定，紅外光譜法（infra-red spectroscopy）有助於驗證部分礦物種類。", src:"Mindat.org 個別礦物頁面"},
+  {en:"Reflected light microscopy / Ore microscopy / Mineragraphy", zh:"反射光顯微鏡／礦相學", detail:"用於鑑定不透明礦物的方法，這些礦物可能是原生岩石的副礦物或主要組成，也包括次生交代與裂隙填充組合。礦相學研究能揭示礦石礦物的共生順序（paragenesis）。", src:"APS — Mineralogy & microstructure"},
+  {en:"Opaque mineral", zh:"不透明礦物", detail:"與非不透明礦物不同，不透明礦物完全不讓光線穿透，因此在平行偏光與正交偏光下（旋轉載物台時）都呈現黑色。常見不透明礦物包括石墨、氧化物（如磁鐵礦、鈦鐵礦）與硫化物（如黃鐵礦、磁黃鐵礦）。", src:"OpenGeology — 5 Optical Mineralogy"},
+  {en:"Supergene alteration", zh:"表生蝕變", detail:"發生在地表的地質作用，透過風化與淋濾使礦物產生蝕變與富集，並顯著影響元素（如銅）的同位素組成。", src:"ScienceDirect Topics — Supergene Process"},
+  {en:"Granoblastic texture", zh:"粒狀變晶結構", detail:"變質岩中因顆粒在固態下彼此調整邊界、試圖達到織構平衡（textural equilibrium）而形成的典型等粒狀結構。礦物通常不太傾向發展自己特有的晶形，呈等軸狀，顆粒大小相對均勻，邊界平直或平滑彎曲，理想狀態下以120°三連點相交。", src:"Alex Strekeisen — Granoblastic texture（引用 Bucher & Grapes, 2011, Petrogenesis of Metamorphic Rocks）"}
+];
+
+function renderSteps(){
+  const list = document.getElementById('stepList');
+  list.innerHTML = '';
+  const savedRaw = localStorage.getItem ? null : null; // no localStorage per platform rule — use in-memory state
+  steps.forEach((s,i)=>{
+    const row = document.createElement('div');
+    row.className = 'step';
+    row.innerHTML = `
+      <div class="step-check" data-idx="${i}">✓</div>
+      <div class="step-body">
+        <h3>${i+1}. ${s.t}</h3>
+        <p>${s.d}</p>
+      </div>`;
+    list.appendChild(row);
+  });
+  attachStepHandlers();
+}
+
+let doneSteps = new Set();
+function attachStepHandlers(){
+  document.querySelectorAll('.step-check').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const idx = el.getAttribute('data-idx');
+      if(doneSteps.has(idx)){ doneSteps.delete(idx); el.classList.remove('done'); }
+      else { doneSteps.add(idx); el.classList.add('done'); }
+      updateProgress();
+    });
+  });
+}
+function updateProgress(){
+  const pct = (doneSteps.size / steps.length) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+document.getElementById('resetSteps').addEventListener('click', ()=>{
+  doneSteps.clear();
+  document.querySelectorAll('.step-check').forEach(el=>el.classList.remove('done'));
+  updateProgress();
+});
+
+function renderGlossary(){
+  const list = document.getElementById('glossaryList');
+  list.innerHTML = '';
+  glossary.forEach((g,i)=>{
+    const item = document.createElement('div');
+    item.className = 'glossary-item';
+    item.innerHTML = `
+      <div class="term-row" data-idx="${i}">
+        <span class="term-en">${g.en}</span>
+        <span class="term-zh">${g.zh}</span>
+        <span class="term-arrow">▶</span>
+      </div>
+      <div class="term-detail">
+        <p style="margin:0;">${g.detail}</p>
+        <span class="src">出處：${g.src}</span>
+      </div>`;
+    list.appendChild(item);
+  });
+  document.querySelectorAll('.term-row').forEach(row=>{
+    row.addEventListener('click', ()=>{
+      row.parentElement.classList.toggle('open');
+    });
+  });
+}
+
+// Navigation
+document.querySelectorAll('.navlink').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.navlink').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('page-' + btn.getAttribute('data-page')).classList.add('active');
+  });
+});
+
+renderSteps();
+renderGlossary();
+updateProgress();
+</script>
+</body>
+</html>
