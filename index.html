@@ -326,6 +326,48 @@
     font-size:0.9rem;
     padding:20px 0;
   }
+  .photo-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:0.9rem;
+  }
+  .photo-table th{
+    text-align:left;
+    color:var(--text-dim);
+    font-weight:500;
+    font-size:0.78rem;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    padding:8px 10px;
+    border-bottom:1px solid var(--line);
+  }
+  .photo-table td{
+    padding:12px 10px;
+    border-bottom:1px solid var(--line);
+    vertical-align:top;
+  }
+  .photo-table tr:last-child td{border-bottom:none;}
+  .photo-table a{
+    color:var(--interference);
+    text-decoration:none;
+  }
+  .photo-table a:hover{text-decoration:underline;}
+  .status-found{
+    color:var(--interference);
+    font-size:0.82rem;
+  }
+  .status-missing{
+    color:var(--text-dim);
+    font-size:0.82rem;
+    font-style:italic;
+  }
+  .group-header{
+    font-family:'Spectral', serif;
+    font-size:0.95rem;
+    color:var(--ochre);
+    margin:26px 0 8px 0;
+  }
+  .group-header:first-child{margin-top:0;}
   ::-webkit-scrollbar{width:8px;}
   ::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
 </style>
@@ -342,6 +384,7 @@
     <button class="navlink" data-page="grain">顆粒描述架構</button>
     <button class="navlink" data-page="glossary">礦物鑑定詞彙</button>
     <button class="navlink" data-page="mineralsearch">礦物檢索</button>
+    <button class="navlink" data-page="photoindex">薄片照片對照</button>
   </nav>
 
   <main>
@@ -454,6 +497,83 @@
       <div class="chip-row" id="colorChipRow"></div>
 
       <div id="mineralList"></div>
+    </section>
+
+    <!-- PAGE 6: Thin section photo index -->
+    <section class="page" id="page-photoindex">
+      <div class="kicker">PHOTO INDEX</div>
+      <h2>薄片照片對照表</h2>
+      <p class="lede">連結到外部網站的實際薄片照片頁面（PPL/XPL），不是把照片複製到這個網站上——這些照片是原作者的著作，只能連過去看，不能搬過來重製。「未找到」代表搜尋沒有找到該礦物種專屬的薄片照片頁面，建議查閱您手邊的期刊論文圖版（如 Yui et al. 1989 或同類 Mn 矽酸鹽岩石文獻）。</p>
+
+      <div class="group-header">輝石族 / Mn 矽酸鹽－碳酸鹽組合</div>
+      <table class="photo-table">
+        <tr><th>礦物</th><th>薄片照片</th></tr>
+        <tr><td>Rhodonite 薔薇輝石</td><td><a href="https://www.alexstrekeisen.it/english/meta/rhodonite.php" target="_blank">Alex Strekeisen</a></td></tr>
+        <tr><td>Pyroxmangite 錳輝石</td><td><span class="status-missing">未找到專屬頁面（與rhodonite同組，光學性質相近但需偏光鏡實際分辨兩者）</span></td></tr>
+        <tr><td>Rhodochrosite 菱錳礦</td><td><span class="status-missing">未找到專屬薄片頁面</span></td></tr>
+        <tr><td>Kutnohorite 錳白雲石</td><td><span class="status-missing">未找到專屬薄片頁面</span></td></tr>
+        <tr><td>Ankerite 鐵白雲石</td><td><span class="status-missing">未找到專屬薄片頁面</span></td></tr>
+        <tr><td>Ca-Mn carbonate（未指定礦物種）</td><td><span class="status-missing">需先確認具體礦物種才能查找</span></td></tr>
+        <tr><td>Khristovite-(Ce)</td><td><span class="status-missing">極罕見礦物，未找到任何薄片照片來源</span></td></tr>
+        <tr><td>Tirodite</td><td><span class="status-missing">未找到專屬薄片頁面</span></td></tr>
+        <tr><td>Celsian</td><td><span class="status-missing">未找到專屬薄片頁面</span></td></tr>
+      </table>
+
+      <div class="group-header">Mn 氧化物</div>
+      <table class="photo-table">
+        <tr><th>礦物</th><th>薄片照片</th></tr>
+        <tr><td>Hausmannite 黑錳礦</td><td><span class="status-missing">未找到專屬穿透光薄片頁面（屬不透明礦物，需反射光顯微鏡才能有效觀察，見下方延伸連結）</span></td></tr>
+        <tr><td>Braunite</td><td><span class="status-missing">同上，屬不透明礦物</span></td></tr>
+        <tr><td>Psilomelane 硬錳礦族</td><td><span class="status-missing">同上，屬不透明礦物</span></td></tr>
+        <tr><td>Pyrolusite 軟錳礦</td><td><span class="status-missing">同上，屬不透明礦物</span></td></tr>
+        <tr><td>Alabandite 硫錳礦</td><td><span class="status-missing">同上，屬不透明礦物</span></td></tr>
+      </table>
+
+      <div class="group-header">石榴子石族 Garnet Group</div>
+      <table class="photo-table">
+        <tr><th>礦物</th><th>薄片照片</th></tr>
+        <tr><td>Almandine 鐵鋁榴石 / Andradite 鈣鐵榴石 / Grossular-Hydrogrossular 鈣鋁榴石 / Pyrope / Spessartine / Uvarovite</td><td><a href="http://microckscopic.ro/minerals/silicates/nesosilicates/garnet-thin-section/" target="_blank">MicROCKscopic — Garnet thin section</a>（同一頁涵蓋整個石榴子石族）</td></tr>
+      </table>
+
+      <div class="group-header">雲母 / 綠泥石族</div>
+      <table class="photo-table">
+        <tr><th>礦物</th><th>薄片照片</th></tr>
+        <tr><td>Biotite 黑雲母</td><td><a href="https://www.alexstrekeisen.it/english/pluto/biotite.php" target="_blank">Alex Strekeisen</a></td></tr>
+        <tr><td>Muscovite 白雲母</td><td><a href="https://www.alexstrekeisen.it/english/meta/muscovite.php" target="_blank">Alex Strekeisen</a></td></tr>
+        <tr><td>Phengite 多矽白雲母</td><td>同 Muscovite 頁面（頁面內文提及phengite為muscovite的中間成員）</td></tr>
+        <tr><td>Phlogopite 金雲母</td><td>參考 <a href="https://www.alexstrekeisen.it/english/pluto/biotite.php" target="_blank">Biotite頁面</a>（phlogopite為biotite系列的鎂端員，該頁有提及但無獨立頁面）</td></tr>
+        <tr><td>Chlorite 綠泥石 / Clinochlore 斜綠泥石</td><td><a href="https://www.alexstrekeisen.it/english/meta/chlorite.php" target="_blank">Alex Strekeisen</a>（頁面列出clinochlore等端員公式）</td></tr>
+        <tr><td>Stilpnomelane 複鐵變雲母</td><td><span class="status-missing">未找到專屬薄片頁面</span></td></tr>
+        <tr><td>Manganpyrosmalite 錳熱臭石</td><td><span class="status-missing">未找到專屬薄片頁面</span></td></tr>
+        <tr><td>Caryopilite</td><td><span class="status-missing">未找到專屬薄片頁面</span></td></tr>
+      </table>
+
+      <div class="group-header">閃石族 / 其他矽酸鹽</div>
+      <table class="photo-table">
+        <tr><th>礦物</th><th>薄片照片</th></tr>
+        <tr><td>Actinolite 陽起石</td><td><a href="https://www.alexstrekeisen.it/english/meta/actinolite.php" target="_blank">Alex Strekeisen</a></td></tr>
+        <tr><td>Manganoan actinolite 錳質陽起石</td><td>參考 <a href="https://www.alexstrekeisen.it/english/meta/actinolite.php" target="_blank">Actinolite頁面</a>（同礦物系列，錳質為成分變體，非獨立頁面）</td></tr>
+        <tr><td>Amphibole 閃石族（通論）</td><td><a href="https://www.alexstrekeisen.it/english/pluto/amphiboles.php" target="_blank">Alex Strekeisen</a></td></tr>
+        <tr><td>Knebelite 錳鐵橄欖石</td><td><span class="status-missing">未找到專屬薄片頁面</span></td></tr>
+        <tr><td>Pyrophanite</td><td><span class="status-missing">未找到專屬薄片頁面</span></td></tr>
+      </table>
+
+      <div class="group-header">長石 / 石英 / 其他</div>
+      <table class="photo-table">
+        <tr><th>礦物</th><th>薄片照片</th></tr>
+        <tr><td>Quartz 石英</td><td><a href="https://www.alexstrekeisen.it/english/pluto/quartz.php" target="_blank">Alex Strekeisen</a>、<a href="http://microckscopic.ro/minerals/silicates/tectosilicates/quartz-thin-section/" target="_blank">MicROCKscopic</a></td></tr>
+        <tr><td>Albite 鈉長石</td><td><a href="https://www.alexstrekeisen.it/english/pluto/plagioclase.php" target="_blank">Alex Strekeisen — Plagioclase頁面</a>（albite為斜長石系列的鈉端員）</td></tr>
+        <tr><td>Baryte 重晶石</td><td><a href="https://www.alexstrekeisen.it/english/sedi/baryte.php" target="_blank">Alex Strekeisen</a></td></tr>
+        <tr><td>Magnetite 磁鐵礦</td><td><a href="https://www.alexstrekeisen.it/english/vulc/magnetite.php" target="_blank">Alex Strekeisen</a></td></tr>
+        <tr><td>Pyrrhotite 磁黃鐵礦</td><td><span class="status-missing">未找到獨立薄片頁面，屬不透明礦物需反射光觀察</span></td></tr>
+      </table>
+
+      <h3 style="margin-top:32px;font-size:1.05rem;">不透明礦物（Mn氧化物、pyrrhotite等）的延伸資源</h3>
+      <p style="color:var(--text-dim);font-size:0.9rem;">這些礦物在一般穿透光PPL/XPL下呈黑色、無法有效判定，需要反射光顯微鏡（ore microscopy）才能看到真正的光學性質。以下網站是按反射光礦物特徵分類的索引：</p>
+      <ul class="link-list" style="list-style:none;padding:0;">
+        <li><a href="https://www.namethatmineral.com/reflected" target="_blank">Name That Mineral — Reflected Light Index（含Braunite、Hausmannite、Psilomelane、Pyrolusite、Pyrrhotite、Magnetite等）</a></li>
+        <li><a href="https://www.rockptx.com/fkm-226-to-fkm-250/" target="_blank">rockPTX — Mn-矽酸鹽/碳酸鹽組合薄片對照（含kutnohorite、rhodonite等）</a></li>
+      </ul>
     </section>
 
   </main>
