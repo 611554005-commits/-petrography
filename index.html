@@ -379,6 +379,73 @@
   .ref-meta{color:var(--text-dim);font-size:0.82rem;margin:4px 0 0 0;}
   .ref p{margin:8px 0 0 0;color:var(--text-dim);font-size:0.9rem;}
   .ref .rel{color:var(--ochre);font-size:0.86rem;}
+  .notes-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+  .notes-bar .search-box{flex:1 1 220px;margin-bottom:0;width:auto;}
+  .btn{
+    background:var(--panel-raised);
+    border:1px solid var(--line);
+    color:var(--text);
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:0.86rem;
+    padding:8px 14px;
+    border-radius:6px;
+    cursor:pointer;
+    transition:border-color .15s, color .15s;
+  }
+  .btn:hover{border-color:var(--interference);color:var(--interference);}
+  .btn.primary{background:var(--interference-soft);border-color:var(--interference);color:var(--interference);}
+  .btn.danger:hover{border-color:var(--mn);color:var(--mn);}
+  .btn.small{padding:4px 10px;font-size:0.78rem;}
+  .notes-status{font-size:0.8rem;color:var(--text-dim);margin:0 0 14px 0;}
+  .notes-status.warn{color:var(--ochre);}
+  .note-form{
+    background:var(--panel);
+    border:1px solid var(--interference);
+    border-radius:6px;
+    padding:18px 20px;
+    margin-bottom:18px;
+  }
+  .note-form .field{margin-bottom:12px;}
+  .note-form label{display:block;font-size:0.78rem;color:var(--text-dim);margin-bottom:4px;}
+  .note-form input,.note-form select,.note-form textarea{
+    width:100%;
+    background:var(--panel-raised);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:9px 12px;
+    color:var(--text);
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:0.92rem;
+  }
+  .note-form textarea{min-height:120px;resize:vertical;line-height:1.55;}
+  .note-form input:focus,.note-form select:focus,.note-form textarea:focus{outline:none;border-color:var(--interference);}
+  .note-form .row{display:flex;gap:12px;flex-wrap:wrap;}
+  .note-form .row .field{flex:1 1 200px;}
+  .note-form .actions{display:flex;gap:8px;}
+  .note-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:16px 18px;
+    margin-bottom:12px;
+  }
+  .note-card h3{font-size:1.02rem;margin:0 0 6px 0;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;}
+  .badge{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:0.72rem;
+    font-weight:500;
+    padding:2px 9px;
+    border-radius:10px;
+    background:var(--interference-soft);
+    color:var(--interference);
+  }
+  .note-meta{font-size:0.78rem;color:var(--text-dim);margin-bottom:8px;}
+  .note-tags span{display:inline-block;font-size:0.75rem;color:var(--ochre);margin-right:10px;}
+  .note-body{font-size:0.92rem;color:var(--text);white-space:pre-wrap;word-break:break-word;margin:8px 0;}
+  .note-link{font-size:0.85rem;}
+  .note-link a{color:var(--interference);text-decoration:none;word-break:break-all;}
+  .note-link a:hover{text-decoration:underline;}
+  .note-actions{display:flex;gap:8px;margin-top:10px;}
   ::-webkit-scrollbar{width:8px;}
   ::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
 </style>
@@ -397,6 +464,7 @@
     <button class="navlink" data-page="mineralsearch">礦物檢索</button>
     <button class="navlink" data-page="photoindex">薄片照片對照</button>
     <button class="navlink" data-page="literature">Mn 隧道氧化物文獻</button>
+    <button class="navlink" data-page="notes">我的筆記庫</button>
   </nav>
 
   <main>
@@ -694,6 +762,28 @@
       </div>
     </section>
 
+    <!-- PAGE 8: Personal notes database -->
+    <section class="page" id="page-notes">
+      <div class="kicker">MY NOTES</div>
+      <h2>我的筆記庫</h2>
+      <p class="lede">像 Notion 一樣隨手新增條目：礦物觀察、EDS 測點、文獻、待辦都可以。資料存在這台裝置的瀏覽器裡，不會公開到網站上，也不會同步到其他裝置。換裝置或清除瀏覽資料前，請先按「匯出」備份。</p>
+
+      <div class="notes-bar">
+        <input type="text" class="search-box" id="noteSearch" placeholder="搜尋標題、內容、標籤…">
+        <button class="btn primary" id="noteAddBtn">＋ 新增條目</button>
+        <button class="btn" id="noteExportBtn">匯出</button>
+        <button class="btn" id="noteImportBtn">匯入</button>
+        <button class="btn" id="noteCopyBtn">複製 JSON</button>
+        <input type="file" id="noteImportFile" accept="application/json,.json" style="display:none">
+      </div>
+      <div class="notes-status" id="noteStatus"></div>
+
+      <div id="noteFormWrap"></div>
+      <div class="chip-row" id="noteCatChips"></div>
+      <div class="chip-row" id="noteTagChips"></div>
+      <div id="noteList"></div>
+    </section>
+
   </main>
 </div>
 
@@ -863,6 +953,232 @@ renderGlossary();
 updateProgress();
 renderColorChips();
 renderMineralList();
+
+// ===== 我的筆記庫（存在瀏覽器 localStorage，不公開） =====
+(function(){
+  const KEY = 'petro_notes_v1';
+  const CATS = ['礦物觀察','EDS 測點','文獻','薄片照片','待辦','其他'];
+  let notes = [];
+  let storageOK = true;
+  let fCat = null, fTag = null, query = '', editingId = null; // editingId: null=none, 'new'=new note, else id
+
+  function esc(str){
+    return String(str == null ? '' : str).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+  function newId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+  function fmt(ts){
+    const d = new Date(ts);
+    if (isNaN(d)) return '';
+    const p = n => String(n).padStart(2,'0');
+    return d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate());
+  }
+  function safeUrl(u){ return /^https?:\/\//i.test(String(u||'').trim()) ? String(u).trim() : ''; }
+  function clean(n){
+    return {
+      id: String(n.id || newId()),
+      title: String(n.title || '').slice(0,200),
+      cat: String(n.cat || '其他'),
+      tags: Array.isArray(n.tags) ? n.tags.map(t=>String(t).trim()).filter(Boolean) : [],
+      url: String(n.url || ''),
+      body: String(n.body || ''),
+      created: Number(n.created) || Date.now(),
+      updated: Number(n.updated) || Date.now()
+    };
+  }
+
+  function load(){
+    let raw = null;
+    try { raw = localStorage.getItem(KEY); } catch(e){ storageOK = false; }
+    let parsed = null;
+    if (raw) { try { parsed = JSON.parse(raw); } catch(e){ parsed = null; } }
+    if (Array.isArray(parsed)) {
+      notes = parsed.map(clean);
+    } else {
+      const now = Date.now();
+      notes = [clean({
+        id: newId(), title: '範例條目：點「編輯」修改，或「刪除」移除', cat: '其他',
+        tags: ['範例'], url: '', created: now, updated: now,
+        body: '按上方「＋ 新增條目」新增自己的筆記。\n標籤用逗號分隔，之後可以點標籤篩選。\n這些資料只存在這台裝置的瀏覽器裡。'
+      })];
+      save();
+    }
+  }
+  function save(){
+    try { localStorage.setItem(KEY, JSON.stringify(notes)); storageOK = true; }
+    catch(e){ storageOK = false; }
+    renderStatus();
+  }
+  function renderStatus(){
+    const el = document.getElementById('noteStatus');
+    if (!el) return;
+    if (storageOK) {
+      el.className = 'notes-status';
+      el.textContent = '共 ' + notes.length + ' 個條目，已存在這個瀏覽器。';
+    } else {
+      el.className = 'notes-status warn';
+      el.textContent = '這個環境無法使用瀏覽器儲存，重新整理後條目會消失。請隨時按「匯出」備份。';
+    }
+  }
+
+  function renderChips(){
+    const catRow = document.getElementById('noteCatChips');
+    const tagRow = document.getElementById('noteTagChips');
+    const cats = CATS.filter(c => notes.some(n => n.cat === c)).concat([...new Set(notes.map(n=>n.cat).filter(c => !CATS.includes(c)))]);
+    const tags = [...new Set(notes.flatMap(n => n.tags))].sort();
+    function build(row, items, current, prefix, onPick){
+      row.innerHTML = '';
+      items.forEach(it => {
+        const chip = document.createElement('div');
+        chip.className = 'chip' + (current === it ? ' active' : '');
+        chip.textContent = prefix + it;
+        chip.addEventListener('click', () => onPick(current === it ? null : it));
+        row.appendChild(chip);
+      });
+    }
+    build(catRow, cats, fCat, '', v => { fCat = v; render(); });
+    build(tagRow, tags, fTag, '# ', v => { fTag = v; render(); });
+  }
+
+  function formHtml(n){
+    const isNew = !n;
+    n = n || {title:'',cat:CATS[0],tags:[],url:'',body:''};
+    const opts = CATS.concat(CATS.includes(n.cat) ? [] : [n.cat]).map(c => '<option value="'+esc(c)+'"'+(c===n.cat?' selected':'')+'>'+esc(c)+'</option>').join('');
+    return '<div class="note-form">'
+      + '<div class="field"><label>標題</label><input type="text" id="nfTitle" value="'+esc(n.title)+'" placeholder="例如：Site 5 Sp6 可能是 rhodonite"></div>'
+      + '<div class="row">'
+      + '<div class="field"><label>類別</label><select id="nfCat">'+opts+'</select></div>'
+      + '<div class="field"><label>標籤（用逗號分隔）</label><input type="text" id="nfTags" value="'+esc(n.tags.join(', '))+'" placeholder="Mn氧化物, EDS, 待驗證"></div>'
+      + '</div>'
+      + '<div class="field"><label>連結（選填，需以 http:// 或 https:// 開頭）</label><input type="text" id="nfUrl" value="'+esc(n.url)+'" placeholder="https://"></div>'
+      + '<div class="field"><label>內容</label><textarea id="nfBody" placeholder="觀察、數值、想法、待辦…">'+esc(n.body)+'</textarea></div>'
+      + '<div class="actions"><button class="btn primary" id="nfSave">'+(isNew?'新增':'儲存')+'</button><button class="btn" id="nfCancel">取消</button></div>'
+      + '</div>';
+  }
+
+  function renderForm(){
+    const wrap = document.getElementById('noteFormWrap');
+    if (editingId === null) { wrap.innerHTML = ''; return; }
+    const n = editingId === 'new' ? null : notes.find(x => x.id === editingId);
+    wrap.innerHTML = formHtml(n);
+    document.getElementById('nfCancel').addEventListener('click', () => { editingId = null; renderForm(); });
+    document.getElementById('nfSave').addEventListener('click', saveForm);
+    document.getElementById('nfTitle').focus();
+  }
+  function saveForm(){
+    const title = document.getElementById('nfTitle').value.trim();
+    const body = document.getElementById('nfBody').value;
+    if (!title && !body.trim()) { alert('請至少填標題或內容'); return; }
+    const data = {
+      title: title || '（未命名）',
+      cat: document.getElementById('nfCat').value,
+      tags: document.getElementById('nfTags').value.split(/[,，、]/).map(t=>t.trim()).filter(Boolean),
+      url: document.getElementById('nfUrl').value.trim(),
+      body: body
+    };
+    const now = Date.now();
+    if (editingId === 'new') {
+      notes.unshift(clean(Object.assign({id:newId(), created:now, updated:now}, data)));
+    } else {
+      const n = notes.find(x => x.id === editingId);
+      if (n) Object.assign(n, data, {updated: now});
+    }
+    editingId = null;
+    save(); renderForm(); render();
+  }
+
+  function renderList(){
+    const list = document.getElementById('noteList');
+    const q = query.trim().toLowerCase();
+    const shown = notes.filter(n => {
+      if (fCat && n.cat !== fCat) return false;
+      if (fTag && !n.tags.includes(fTag)) return false;
+      if (!q) return true;
+      return (n.title + ' ' + n.body + ' ' + n.tags.join(' ') + ' ' + n.url).toLowerCase().includes(q);
+    }).sort((a,b) => b.updated - a.updated);
+    if (!shown.length) {
+      list.innerHTML = '<div class="no-results">' + (notes.length ? '沒有符合的條目。' : '還沒有條目，按「＋ 新增條目」開始。') + '</div>';
+      return;
+    }
+    list.innerHTML = shown.map(n => {
+      const url = safeUrl(n.url);
+      return '<div class="note-card" data-id="'+esc(n.id)+'">'
+        + '<h3>'+esc(n.title)+' <span class="badge">'+esc(n.cat)+'</span></h3>'
+        + '<div class="note-meta">更新 '+fmt(n.updated)+(n.created && fmt(n.created)!==fmt(n.updated) ? '　建立 '+fmt(n.created) : '')+'</div>'
+        + (n.tags.length ? '<div class="note-tags">'+n.tags.map(t=>'<span>#'+esc(t)+'</span>').join('')+'</div>' : '')
+        + (n.body ? '<div class="note-body">'+esc(n.body)+'</div>' : '')
+        + (url ? '<div class="note-link"><a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">'+esc(url)+'</a></div>' : '')
+        + '<div class="note-actions"><button class="btn small" data-act="edit">編輯</button><button class="btn small danger" data-act="del">刪除</button></div>'
+        + '</div>';
+    }).join('');
+    list.querySelectorAll('.note-card').forEach(card => {
+      const id = card.getAttribute('data-id');
+      card.querySelector('[data-act="edit"]').addEventListener('click', () => {
+        editingId = id; renderForm();
+        const fw = document.getElementById('noteFormWrap'); if (fw.scrollIntoView) fw.scrollIntoView({behavior:'smooth', block:'start'});
+      });
+      card.querySelector('[data-act="del"]').addEventListener('click', () => {
+        if (!confirm('確定刪除這個條目？（可以先按「匯出」備份）')) return;
+        notes = notes.filter(x => x.id !== id);
+        if (editingId === id) editingId = null;
+        save(); renderForm(); render();
+      });
+    });
+  }
+  function render(){ renderChips(); renderList(); renderStatus(); }
+
+  function exportJson(){
+    const blob = new Blob([JSON.stringify(notes, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    const d = new Date(); const p = n => String(n).padStart(2,'0');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'petrography-notes-' + d.getFullYear() + p(d.getMonth()+1) + p(d.getDate()) + '.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  function copyJson(){
+    const text = JSON.stringify(notes, null, 2);
+    const done = () => alert('已複製 ' + notes.length + ' 個條目的 JSON');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(() => alert('複製失敗，請改用「匯出」下載檔案'));
+    } else {
+      alert('這個瀏覽器不支援直接複製，請改用「匯出」下載檔案');
+    }
+  }
+  function importJson(file){
+    const reader = new FileReader();
+    reader.onload = () => {
+      let data;
+      try { data = JSON.parse(reader.result); } catch(e){ alert('這不是有效的 JSON 檔案'); return; }
+      if (!Array.isArray(data)) { alert('格式不符：檔案內容應該是條目陣列'); return; }
+      const incoming = data.filter(x => x && typeof x === 'object').map(clean);
+      let added = 0, updated = 0;
+      incoming.forEach(n => {
+        const i = notes.findIndex(x => x.id === n.id);
+        if (i === -1) { notes.push(n); added++; }
+        else if (n.updated > notes[i].updated) { notes[i] = n; updated++; }
+      });
+      save(); render();
+      alert('匯入完成：新增 ' + added + ' 筆，更新 ' + updated + ' 筆');
+    };
+    reader.readAsText(file);
+  }
+
+  function init(){
+    if (!document.getElementById('page-notes')) return;
+    load();
+    document.getElementById('noteAddBtn').addEventListener('click', () => { editingId = 'new'; renderForm(); });
+    document.getElementById('noteSearch').addEventListener('input', e => { query = e.target.value; renderList(); });
+    document.getElementById('noteExportBtn').addEventListener('click', exportJson);
+    document.getElementById('noteCopyBtn').addEventListener('click', copyJson);
+    document.getElementById('noteImportBtn').addEventListener('click', () => document.getElementById('noteImportFile').click());
+    document.getElementById('noteImportFile').addEventListener('change', e => {
+      if (e.target.files && e.target.files[0]) importJson(e.target.files[0]);
+      e.target.value = '';
+    });
+    render();
+  }
+  init();
+})();
 </script>
 </body>
 </html>
