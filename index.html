@@ -368,6 +368,17 @@
     margin:26px 0 8px 0;
   }
   .group-header:first-child{margin-top:0;}
+  .ref{
+    border-bottom:1px solid var(--line);
+    padding:14px 0;
+  }
+  .ref:last-child{border-bottom:none;}
+  .ref-title{font-weight:600;font-size:0.95rem;}
+  .ref-title a{color:var(--interference);text-decoration:none;}
+  .ref-title a:hover{text-decoration:underline;}
+  .ref-meta{color:var(--text-dim);font-size:0.82rem;margin:4px 0 0 0;}
+  .ref p{margin:8px 0 0 0;color:var(--text-dim);font-size:0.9rem;}
+  .ref .rel{color:var(--ochre);font-size:0.86rem;}
   ::-webkit-scrollbar{width:8px;}
   ::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
 </style>
@@ -385,6 +396,7 @@
     <button class="navlink" data-page="glossary">礦物鑑定詞彙</button>
     <button class="navlink" data-page="mineralsearch">礦物檢索</button>
     <button class="navlink" data-page="photoindex">薄片照片對照</button>
+    <button class="navlink" data-page="literature">Mn 隧道氧化物文獻</button>
   </nav>
 
   <main>
@@ -508,15 +520,15 @@
       <div class="group-header">輝石族 / Mn 矽酸鹽－碳酸鹽組合</div>
       <table class="photo-table">
         <tr><th>礦物</th><th>薄片照片</th></tr>
-        <tr><td>Rhodonite 薔薇輝石</td><td><a href="https://www.alexstrekeisen.it/english/meta/rhodonite.php" target="_blank">Alex Strekeisen</a></td></tr>
-        <tr><td>Pyroxmangite 錳輝石</td><td><span class="status-missing">未找到專屬頁面（與rhodonite同組，光學性質相近但需偏光鏡實際分辨兩者）</span></td></tr>
-        <tr><td>Rhodochrosite 菱錳礦</td><td><span class="status-missing">未找到專屬薄片頁面</span></td></tr>
-        <tr><td>Kutnohorite 錳白雲石</td><td><span class="status-missing">未找到專屬薄片頁面</span></td></tr>
-        <tr><td>Ankerite 鐵白雲石</td><td><span class="status-missing">未找到專屬薄片頁面</span></td></tr>
+        <tr><td>Rhodonite 薔薇輝石</td><td><a href="https://www.alexstrekeisen.it/english/meta/rhodonite.php" target="_blank">Alex Strekeisen</a>；<a href="https://www.gia.edu/gems-gemology/spring-2020-rhodonite-pyroxmangite-tanatz-alp" target="_blank">GIA G&amp;G論文 Fig.6</a>（XPL/PPL薄片照片，與kutnohorite共生）；<a href="https://geolines.gli.cas.cz/fileadmin/volumes/volume13/G13-034.pdf" target="_blank">GeoLines論文 Fig.3/6/8</a>（穿透光，與tephroite、spessartite、anthophyllite共生）</td></tr>
+        <tr><td>Pyroxmangite 錳輝石</td><td>同上 <a href="https://www.gia.edu/gems-gemology/spring-2020-rhodonite-pyroxmangite-tanatz-alp" target="_blank">GIA論文 Fig.6</a>（與rhodonite肉眼/偏光下難以區分，論文中以XRD/Raman輔助判定）</td></tr>
+        <tr><td>Rhodochrosite 菱錳礦</td><td><a href="https://geolines.gli.cas.cz/fileadmin/volumes/volume13/G13-034.pdf" target="_blank">GeoLines論文 Fig.8</a>（穿透光，被Mn-rich calcite脈切穿）</td></tr>
+        <tr><td>Kutnohorite 錳白雲石</td><td><a href="https://www.gia.edu/gems-gemology/spring-2020-rhodonite-pyroxmangite-tanatz-alp" target="_blank">GIA論文 Fig.6B</a>（XPL，與rhodonite/pyroxmangite共生）</td></tr>
+        <tr><td>Ankerite 鐵白雲石</td><td><span class="status-missing">GIA論文的XRPD圖版有標示，但未附獨立薄片照片</span></td></tr>
+        <tr><td>Khristovite-(Ce)</td><td><span class="status-missing">GIA論文以XRD峰位確認其存在，未附薄片照片（該礦物極罕見，肉眼與偏光下無法與周圍礦物區分）</span></td></tr>
         <tr><td>Ca-Mn carbonate（未指定礦物種）</td><td><span class="status-missing">需先確認具體礦物種才能查找</span></td></tr>
-        <tr><td>Khristovite-(Ce)</td><td><span class="status-missing">極罕見礦物，未找到任何薄片照片來源</span></td></tr>
-        <tr><td>Tirodite</td><td><span class="status-missing">未找到專屬薄片頁面</span></td></tr>
-        <tr><td>Celsian</td><td><span class="status-missing">未找到專屬薄片頁面</span></td></tr>
+        <tr><td>Tirodite</td><td><span class="status-missing">未找到薄片照片；<a href="https://geolines.gli.cas.cz/fileadmin/volumes/volume13/G13-034.pdf" target="_blank">GeoLines論文</a>文字中提及Kantor(1954)曾於同類礦床報告"tirodite"，但無附圖</span></td></tr>
+        <tr><td>Celsian</td><td><span class="status-missing">未找到薄片照片</span></td></tr>
       </table>
 
       <div class="group-header">Mn 氧化物</div>
@@ -525,17 +537,17 @@
         <tr><td>Hausmannite 黑錳礦</td><td><span class="status-missing">未找到專屬穿透光薄片頁面（屬不透明礦物，需反射光顯微鏡才能有效觀察，見下方延伸連結）</span></td></tr>
         <tr><td>Braunite</td><td><span class="status-missing">同上，屬不透明礦物</span></td></tr>
         <tr><td>Psilomelane 硬錳礦族</td><td><span class="status-missing">同上，屬不透明礦物</span></td></tr>
-        <tr><td>Pyrolusite 軟錳礦</td><td><span class="status-missing">同上，屬不透明礦物</span></td></tr>
+        <tr><td>Pyrolusite 軟錳礦</td><td><span class="status-missing">同上，屬不透明礦物；<a href="https://geolines.gli.cas.cz/fileadmin/volumes/volume13/G13-034.pdf" target="_blank">GeoLines論文</a>文字描述其交代todorokite的產狀，未附獨立照片</span></td></tr>
         <tr><td>Alabandite 硫錳礦</td><td><span class="status-missing">同上，屬不透明礦物</span></td></tr>
       </table>
 
       <div class="group-header">石榴子石族 Garnet Group</div>
       <table class="photo-table">
         <tr><th>礦物</th><th>薄片照片</th></tr>
-        <tr><td>Almandine 鐵鋁榴石 / Andradite 鈣鐵榴石 / Grossular-Hydrogrossular 鈣鋁榴石 / Pyrope / Spessartine / Uvarovite</td><td><a href="http://microckscopic.ro/minerals/silicates/nesosilicates/garnet-thin-section/" target="_blank">MicROCKscopic — Garnet thin section</a>（同一頁涵蓋整個石榴子石族）</td></tr>
+        <tr><td>Almandine 鐵鋁榴石 / Andradite 鈣鐵榴石 / Grossular-Hydrogrossular 鈣鋁榴石 / Pyrope / Spessartine / Uvarovite</td><td><a href="http://microckscopic.ro/minerals/silicates/nesosilicates/garnet-thin-section/" target="_blank">MicROCKscopic — Garnet thin section</a>（同一頁涵蓋整個石榴子石族）；<a href="https://www.gia.edu/gems-gemology/spring-2020-rhodonite-pyroxmangite-tanatz-alp" target="_blank">GIA論文 Fig.6C</a>（PPL，Mn-rich garnet/spessartine）</td></tr>
       </table>
 
-      <div class="group-header">雲母 / 綠泥石族</div>
+      <div class="group-header">雲母 / 綠泥石族 / 蛇紋石族</div>
       <table class="photo-table">
         <tr><th>礦物</th><th>薄片照片</th></tr>
         <tr><td>Biotite 黑雲母</td><td><a href="https://www.alexstrekeisen.it/english/pluto/biotite.php" target="_blank">Alex Strekeisen</a></td></tr>
@@ -543,19 +555,19 @@
         <tr><td>Phengite 多矽白雲母</td><td>同 Muscovite 頁面（頁面內文提及phengite為muscovite的中間成員）</td></tr>
         <tr><td>Phlogopite 金雲母</td><td>參考 <a href="https://www.alexstrekeisen.it/english/pluto/biotite.php" target="_blank">Biotite頁面</a>（phlogopite為biotite系列的鎂端員，該頁有提及但無獨立頁面）</td></tr>
         <tr><td>Chlorite 綠泥石 / Clinochlore 斜綠泥石</td><td><a href="https://www.alexstrekeisen.it/english/meta/chlorite.php" target="_blank">Alex Strekeisen</a>（頁面列出clinochlore等端員公式）</td></tr>
-        <tr><td>Stilpnomelane 複鐵變雲母</td><td><span class="status-missing">未找到專屬薄片頁面</span></td></tr>
-        <tr><td>Manganpyrosmalite 錳熱臭石</td><td><span class="status-missing">未找到專屬薄片頁面</span></td></tr>
-        <tr><td>Caryopilite</td><td><span class="status-missing">未找到專屬薄片頁面</span></td></tr>
+        <tr><td>Stilpnomelane 複鐵變雲母</td><td><span class="status-missing">未找到薄片照片</span></td></tr>
+        <tr><td>Manganpyrosmalite 錳熱臭石</td><td><span class="status-missing">未找到薄片照片；<a href="https://geolines.gli.cas.cz/fileadmin/volumes/volume13/G13-034.pdf" target="_blank">GeoLines論文</a>文字提及其與rhodonite、tephroite、pyrophanite、磁鐵礦共生，未附獨立照片</span></td></tr>
+        <tr><td>Caryopilite</td><td><span class="status-missing">未找到caryopilite本身的照片；<a href="http://www.minsocam.org/ammin/AM66/AM66_1054.pdf" target="_blank">American Mineralogist論文（Dunn et al. 1981）Fig.3</a>有同族的schallerite穿透光薄片照片，供參考同族礦物的顯微外觀，但並非caryopilite本身</span></td></tr>
       </table>
 
-      <div class="group-header">閃石族 / 其他矽酸鹽</div>
+      <div class="group-header">閃石族 / 橄欖石族 / 鈦鐵礦族</div>
       <table class="photo-table">
         <tr><th>礦物</th><th>薄片照片</th></tr>
         <tr><td>Actinolite 陽起石</td><td><a href="https://www.alexstrekeisen.it/english/meta/actinolite.php" target="_blank">Alex Strekeisen</a></td></tr>
         <tr><td>Manganoan actinolite 錳質陽起石</td><td>參考 <a href="https://www.alexstrekeisen.it/english/meta/actinolite.php" target="_blank">Actinolite頁面</a>（同礦物系列，錳質為成分變體，非獨立頁面）</td></tr>
-        <tr><td>Amphibole 閃石族（通論）</td><td><a href="https://www.alexstrekeisen.it/english/pluto/amphiboles.php" target="_blank">Alex Strekeisen</a></td></tr>
-        <tr><td>Knebelite 錳鐵橄欖石</td><td><span class="status-missing">未找到專屬薄片頁面</span></td></tr>
-        <tr><td>Pyrophanite</td><td><span class="status-missing">未找到專屬薄片頁面</span></td></tr>
+        <tr><td>Amphibole 閃石族（通論）</td><td><a href="https://www.alexstrekeisen.it/english/pluto/amphiboles.php" target="_blank">Alex Strekeisen</a>；<a href="https://geolines.gli.cas.cz/fileadmin/volumes/volume13/G13-034.pdf" target="_blank">GeoLines論文 Fig.6</a>（anthophyllite穿透光照片，同為閃石族）</td></tr>
+        <tr><td>Knebelite 錳鐵橄欖石</td><td><span class="status-missing">未找到knebelite本身的照片；<a href="https://geolines.gli.cas.cz/fileadmin/volumes/volume13/G13-034.pdf" target="_blank">GeoLines論文</a>指出化學分析顯示先前文獻所稱的"knebelite"實際上化學組成更接近tephroite（見Fig.3中的te標示），可作為判釋參考</span></td></tr>
+        <tr><td>Pyrophanite</td><td><a href="https://geolines.gli.cas.cz/fileadmin/volumes/volume13/G13-034.pdf" target="_blank">GeoLines論文 Fig.9</a>（反射光，與磁鐵礦共生，顯示雙反射與異向性特徵）</td></tr>
       </table>
 
       <div class="group-header">長石 / 石英 / 其他</div>
@@ -564,16 +576,122 @@
         <tr><td>Quartz 石英</td><td><a href="https://www.alexstrekeisen.it/english/pluto/quartz.php" target="_blank">Alex Strekeisen</a>、<a href="http://microckscopic.ro/minerals/silicates/tectosilicates/quartz-thin-section/" target="_blank">MicROCKscopic</a></td></tr>
         <tr><td>Albite 鈉長石</td><td><a href="https://www.alexstrekeisen.it/english/pluto/plagioclase.php" target="_blank">Alex Strekeisen — Plagioclase頁面</a>（albite為斜長石系列的鈉端員）</td></tr>
         <tr><td>Baryte 重晶石</td><td><a href="https://www.alexstrekeisen.it/english/sedi/baryte.php" target="_blank">Alex Strekeisen</a></td></tr>
-        <tr><td>Magnetite 磁鐵礦</td><td><a href="https://www.alexstrekeisen.it/english/vulc/magnetite.php" target="_blank">Alex Strekeisen</a></td></tr>
-        <tr><td>Pyrrhotite 磁黃鐵礦</td><td><span class="status-missing">未找到獨立薄片頁面，屬不透明礦物需反射光觀察</span></td></tr>
+        <tr><td>Magnetite 磁鐵礦</td><td><a href="https://www.alexstrekeisen.it/english/vulc/magnetite.php" target="_blank">Alex Strekeisen</a>；<a href="https://geolines.gli.cas.cz/fileadmin/volumes/volume13/G13-034.pdf" target="_blank">GeoLines論文 Fig.9</a>（反射光，與pyrophanite共生）</td></tr>
+        <tr><td>Pyrrhotite 磁黃鐵礦</td><td><a href="https://geolines.gli.cas.cz/fileadmin/volumes/volume13/G13-034.pdf" target="_blank">GeoLines論文 Fig.10</a>（反射光，包裹cobaltite與pentlandite）</td></tr>
       </table>
+
+      <div class="note">
+        <strong>特別推薦</strong>：GeoLines論文（Rojkovič, 2001, GeoLines 13: 34-41, 免費全文PDF）研究的是斯洛伐克Gemericum地區的Mn矽酸鹽-碳酸鹽變質礦床，礦物組合（rhodonite、rhodochrosite、tephroite、anthophyllite、pyroxmangite、pyrophanite、manganpyrosmalite、tirodite、caryopilite、knebelite等）與您的研究極為相似，文中多張圖為實際穿透光/反射光薄片照片，非常值得您通讀全文並對照圖版。
+      </div>
 
       <h3 style="margin-top:32px;font-size:1.05rem;">不透明礦物（Mn氧化物、pyrrhotite等）的延伸資源</h3>
       <p style="color:var(--text-dim);font-size:0.9rem;">這些礦物在一般穿透光PPL/XPL下呈黑色、無法有效判定，需要反射光顯微鏡（ore microscopy）才能看到真正的光學性質。以下網站是按反射光礦物特徵分類的索引：</p>
       <ul class="link-list" style="list-style:none;padding:0;">
         <li><a href="https://www.namethatmineral.com/reflected" target="_blank">Name That Mineral — Reflected Light Index（含Braunite、Hausmannite、Psilomelane、Pyrolusite、Pyrrhotite、Magnetite等）</a></li>
         <li><a href="https://www.rockptx.com/fkm-226-to-fkm-250/" target="_blank">rockPTX — Mn-矽酸鹽/碳酸鹽組合薄片對照（含kutnohorite、rhodonite等）</a></li>
+        <li><a href="https://geolines.gli.cas.cz/fileadmin/volumes/volume13/G13-034.pdf" target="_blank">Rojkovič (2001) — Early Paleozoic Manganese Ores in the Gemericum Superunit（免費全文PDF）</a></li>
+        <li><a href="https://www.gia.edu/gems-gemology/spring-2020-rhodonite-pyroxmangite-tanatz-alp" target="_blank">Caucia et al. (2020) — Rhodonite-Pyroxmangite from Tanatz Alp, Switzerland（GIA Gems &amp; Gemology，免費全文）</a></li>
       </ul>
+    </section>
+
+    <!-- PAGE 7: Literature on Mn tunnel oxides -->
+    <section class="page" id="page-literature">
+      <div class="kicker">LITERATURE</div>
+      <h2>Mn 隧道氧化物文獻（cryptomelane、hollandite、romanechite）</h2>
+      <p class="lede">與 SEM-EDS 判讀 cryptomelane、hollandite、romanechite 相關的文獻。整理時只讀到摘要或搜尋片段，未讀全文，引用前請回原文核對。天然樣品的 EDS 頻譜多半以 EPMA 成分表發表，未找到三者並列的 EDS 頻譜圖。</p>
+
+      <div class="group-header">變質 Mn 礦床（最貼近您的研究）</div>
+      <div class="card">
+        <div class="ref">
+          <div class="ref-title"><a href="https://www.jstage.jst.go.jp/article/minerj/13/7/13_7_424/_article" target="_blank">Hollandite and cryptomelane in the manganese oxide deposits of the Sausar Group, India</a></div>
+          <div class="ref-meta">Miura, Banerjee, Hariya, Dasgupta &amp; Roy (1987), Mineralogical Journal 13(7): 424–433, doi:10.2465/minerj.13.424（J-STAGE 免費下載）</div>
+          <p>研究印度 Sausar Group 的 hollandite-cryptomelane 系列，隧道陽離子並未完全交換；Ba²⁺ 增加時，Tirodi 地區 cryptomelane 的對稱性由四方晶系變為單斜晶系。這些礦物形成於從最低（綠泥石-黑雲母）到最高（矽線石）的變質度範圍，hollandite 局部分解成 hausmannite ± 含 Ba 長石，歸因於變質期間 fO₂ 的改變。</p>
+          <p class="rel">與您礦物清單的關聯：含 Ba 長石可對照 celsian，另有 hausmannite。</p>
+        </div>
+        <div class="ref">
+          <div class="ref-title"><a href="https://link.springer.com/article/10.1007/BF03002962" target="_blank">Alpine metamorphic assemblages of hollandite-cryptomelane series minerals in association with braunite, phengite and aegirine in Mn-ores from the Briançonnais Mesozoic cover</a></div>
+          <div class="ref-meta">Rendiconti Lincei. Scienze Fisiche e Naturali（作者請自行從頁面確認）</div>
+          <p>阿爾卑斯變質作用下，hollandite-cryptomelane 系列礦物與 braunite、多矽白雲母（phengite）、霓石共生，並討論 Mn、Ba、Fe、K、Na 在各相之間的分配。</p>
+          <p class="rel">與您礦物清單的關聯：braunite、phengite 共生組合。</p>
+        </div>
+      </div>
+
+      <div class="group-header">成分變化的背景</div>
+      <div class="card">
+        <div class="ref">
+          <div class="ref-title"><a href="https://www.pnas.org/doi/10.1073/pnas.96.7.3447" target="_blank">Manganese oxide minerals: Crystal structures and economic and environmental significance</a></div>
+          <div class="ref-meta">Post (1999), PNAS 96(7): 3447</div>
+          <p>自然界具端員成分的 hollandite 族樣品不常見，隧道陽離子組成範圍很寬，不同種類常混生，甚至在單一晶體內漸變。Romanechite 的成分變化主要是 Ba 相對於 Na、K、Ca、Sr 的濃度，且 romanechite 與 hollandite 常在極細的尺度上混生。</p>
+        </div>
+        <div class="ref">
+          <div class="ref-title"><a href="https://geoinfo.nmt.edu/museum/nmms/abstracts/viewPDF.cfm?aid=25" target="_blank">Manganese oxides (psilomelane) from Socorro County, New Mexico</a></div>
+          <div class="ref-meta">新墨西哥礦物博物館摘要（內文引用 Turner &amp; Buseck 1979, Science 203: 456–458）</div>
+          <p>高解析穿透電鏡顯示，同一根纖維由 hollandite 與 romanechite 結構的次微米區域隨機交替組成；PbO 最高可達約 20 wt%，接近 coronadite。這種混生用 EDS 成分無法拆開。</p>
+        </div>
+        <div class="ref">
+          <div class="ref-title"><a href="https://pubs.geoscienceworld.org/ejm/eurjmin/article/25/1/85/69704/Nomenclature-tunings-in-the-hollandite-supergroup" target="_blank">Nomenclature tunings in the hollandite supergroup</a></div>
+          <div class="ref-meta">European Journal of Mineralogy 25(1): 85（作者請自行從頁面確認）</div>
+          <p>提議把 hollandite 一名保留給 Ba-Mn³⁺ 端員，並新增 ferrihollandite 指 Ba-Fe³⁺ 端員。寫論文時需要知道名稱的定義。</p>
+        </div>
+      </div>
+
+      <div class="group-header">Raman：EDS 分不出時的下一步</div>
+      <div class="card">
+        <div class="ref">
+          <div class="ref-title"><a href="https://analyticalsciencejournals.onlinelibrary.wiley.com/doi/10.1002/jrs.5583" target="_blank">Raman spectra of natural manganese oxides</a></div>
+          <div class="ref-meta">Bernardini, Bellatreccia, Casanova Municchia, Della Ventura &amp; Sodo (2019), J. Raman Spectrosc. 50: 873–888, doi:10.1002/jrs.5583</div>
+          <p>作者指出 Raman 是唯一能輕易區分 hollandite 與 cryptomelane 的方法，並提供經充分鑑定樣品的參考譜。</p>
+        </div>
+        <div class="ref">
+          <div class="ref-title"><a href="https://www.degruyterbrill.com/document/doi/10.2138/am-2020-7390/html?lang=en" target="_blank">Raman spectroscopy study of manganese oxides: Tunnel structures</a></div>
+          <div class="ref-meta">Post, McKeown &amp; Heaney (2020), American Mineralogist 105(8): 1175–1190, doi:10.2138/am-2020-7390</div>
+          <p>hollandite 族在 630 cm⁻¹ 附近的 Raman 峰位置，與八面體位置中 Mn³⁺ 的比例呈強線性相關。</p>
+        </div>
+        <div class="ref">
+          <div class="ref-title"><a href="https://analyticalsciencejournals.onlinelibrary.wiley.com/doi/full/10.1002/jrs.6740" target="_blank">The Stability of Manganese Oxides Under Laser Irradiation During Raman Analyses: I. Compact Versus Channel Structures</a></div>
+          <div class="ref-meta">Bernardini et al. (2025), J. Raman Spectrosc., doi:10.1002/jrs.6740</div>
+          <p>雷射功率要小心：據報導 pyrolusite、manganite、hollandite、romanechite 相當穩定，約 2.5 mW/μm² 以上才轉為尖晶石結構；cryptomelane 與 todorokite 則在約 226 μW/μm² 就開始劣化。</p>
+        </div>
+        <div class="ref">
+          <div class="ref-title"><a href="https://onlinelibrary.wiley.com/doi/10.1111/ggr.12361" target="_blank">A Reliable Method for Determining the Oxidation State of Manganese at the Microscale in Mn Oxides via Raman Spectroscopy</a></div>
+          <div class="ref-meta">Bernardini, Bellatreccia, Della Ventura &amp; Sodo (2021), Geostandards and Geoanalytical Research 45(1): 223–244, doi:10.1111/ggr.12361</div>
+          <p>以 Raman 在微區判定 Mn 的氧化態。EDS 的 Mn 價態無法分辨，這是補足的方法之一（僅讀到標題與參考文獻列表，內容未查證）。</p>
+        </div>
+      </div>
+
+      <div class="group-header">EDS 判讀的注意事項</div>
+      <div class="card">
+        <div class="ref">
+          <div class="ref-title">Ti 與 Ba 的峰重疊</div>
+          <p>Ti Kα（4.51 keV）與 Ba Lα（4.47 keV）、Ti Kβ（4.93 keV）與 Ba Lβ（4.83 keV）重疊，EDS 無法可靠辨別 Ti 與 Ba。參考：<a href="https://documents.thermofisher.com/TFS-Assets/MSD/Application-Notes/AN0228-chemisem-eds-peak-deconvolution-en.pdf" target="_blank" style="color:var(--interference);">Thermo Fisher 應用說明 AN0228</a>（Ba、Ti 解卷積）、<a href="https://nano.oxinst.com/library/past-blogss/accurate-elemental-identification" target="_blank" style="color:var(--interference);">Oxford Instruments 部落格</a>（Ba/Ti 列為需 WDS 才能完全解析的常見重疊）。</p>
+          <p class="rel">實作：Mn 氧化物頻譜在 4.5–4.9 keV 出現小峰時，先用 INCA 峰形擬合確認是 Ti 還是 Ba。</p>
+        </div>
+        <div class="ref">
+          <div class="ref-title">Sr 與 Si 的峰重疊（常見 EDS 知識，未在上述來源逐項查證）</div>
+          <p>Sr Lα（約 1.81 keV）與 Si Kα（約 1.74 keV）相近，Sr 的定量值可能影響 Si，反之亦然。</p>
+        </div>
+        <div class="ref">
+          <div class="ref-title">Total 偏低與 Mn 價態（本手冊自行推算，非文獻結論）</div>
+          <p>「Oxygen by stoichiometry」以 MnO（Mn²⁺）計算氧。若 Mn 實際為 Mn³⁺ 或 Mn⁴⁺，補回氧之後 Total 會升高，所以隧道結構 Mn 氧化物的 Total 偏低（例如 91–96%）不一定代表數據不可信。此外這類礦物含水，EDS 測不到。</p>
+        </div>
+      </div>
+
+      <div class="group-header">合成樣品的 EDS（僅作純相參考）</div>
+      <div class="card">
+        <div class="ref">
+          <div class="ref-title"><a href="https://www.frontiersin.org/journals/chemistry/articles/10.3389/fchem.2018.00352/full" target="_blank">Cryptomelane-Type KMn₈O₁₆ as Potential Cathode Material for Aqueous Zinc Ion Battery</a></div>
+          <div class="ref-meta">Frontiers in Chemistry (2018)</div>
+          <p>合成 KMn₈O₁₆ 的 EDS 元素分布顯示 K、Mn、O 均勻分布，沒有其他雜質元素。</p>
+        </div>
+        <div class="ref">
+          <div class="ref-title"><a href="https://pubs.acs.org/doi/abs/10.1021/jp804924f" target="_blank">Microstructures and Spectroscopic Properties of Cryptomelane-type Manganese Dioxide Nanofibers</a></div>
+          <div class="ref-meta">The Journal of Physical Chemistry C</div>
+          <p>合成 K-MnO₂ 奈米纖維的平均組成為 K₀.₁₁(H₃O)₀.₀₅MnO₂。</p>
+        </div>
+      </div>
+      <div class="note">
+        這兩篇是合成樣品，只能當「純相的 EDS 長什麼樣」的參考，不能與天然樣品的成分直接比對。
+      </div>
     </section>
 
   </main>
@@ -605,9 +723,9 @@ const mineralData = [
   {name:"Hausmannite", zh:"黑錳礦", formula:"Mn²⁺Mn³⁺₂O₄（即 Mn₃O₄）", colorTag:"棕黑-灰", color:"棕黑色、灰色", luster:"次金屬光澤，不透明（薄邊緣可透光）", note:"", src:"Wikipedia — Hausmannite（引用 Handbook of Mineralogy）"},
   {name:"Braunite", zh:"黑錳礦族矽酸鹽", formula:"Mn²⁺Mn³⁺₆[O₈|SiO₄]", colorTag:"棕黑-鋼灰", color:"棕黑色、鋼灰色", luster:"次金屬光澤，不透明", note:"與其他矽酸鹽礦物不同，braunite本質上是含矽酸根的錳氧化物", src:"Wikipedia — Braunite（引用 Mindat）"},
   {name:"Birnessite", zh:"水鈉錳礦", formula:"Na₀.₇Ca₀.₃Mn₇O₁₄·2.8H₂O（通式 MnO₂·nH₂O）", colorTag:"深棕-黑", color:"深棕色至黑色", luster:"次金屬/暗淡光澤，近不透明", note:"結晶度極低，是地表最常見的錳礦物，常見於土壤、沉積物、岩石表面塗覆（如沙漠漆）", src:"Wikipedia — Birnessite"},
-  {name:"Romanechite", zh:"鋇硬錳礦", formula:"(Ba,H₂O)₂Mn₅O₁₀（一般式，個別分析結果可能有差異）", colorTag:"黑", color:"黑色（與hollandite化學性質相近）", luster:"資料未直接查證，屬hollandite-romanechite族，一般預期為金屬至次金屬光澤", note:"化學組成與hollandite相近，容易與cryptomelane族礦物混淆", src:"Mindat — Romanechite；USPTO patent text（hollandite-romanechite family）"},
-  {name:"Hollandite", zh:"錳鋇礦", formula:"BaMn₈O₁₆", colorTag:"黑-灰", color:"黑色、灰色", luster:"資料未直接查證", note:"屬 cryptomelane 族（2×2隧道結構），隧道中陽離子決定礦物種：Ba²⁺→hollandite，K⁺→cryptomelane，Pb²⁺→coronadite", src:"Handbook of Mineralogy — Hollandite"},
-  {name:"Cryptomelane", zh:"隱鉀錳礦", formula:"KMn₈O₁₆", colorTag:"黑-鋼灰", color:"資料未直接查證，屬hollandite族，一般預期與同族黑色、灰色相近", luster:"資料未直接查證", note:"1942年為釐清原本統稱「psilomelane」的錳氧化物礦物而提出的名稱，1982年經IMA正式核准", src:"Wikipedia — Cryptomelane"},
+  {name:"Romanechite", zh:"鋇硬錳礦", formula:"(Ba,H₂O)₂Mn₅O₁₀（一般式，個別分析結果可能有差異）", colorTag:"黑", color:"黑色（與hollandite化學性質相近）", luster:"資料未直接查證，屬hollandite-romanechite族，一般預期為金屬至次金屬光澤", note:"化學組成與hollandite相近，容易與cryptomelane族礦物混淆。與hollandite常在極細的尺度上混生，成分變化主要是Ba相對於Na、K、Ca、Sr的濃度（Post 1999）", src:"Mindat — Romanechite；USPTO patent text（hollandite-romanechite family）；Post (1999) PNAS 96:3447"},
+  {name:"Hollandite", zh:"錳鋇礦", formula:"BaMn₈O₁₆", colorTag:"黑-灰", color:"黑色、灰色", luster:"資料未直接查證", note:"屬 cryptomelane 族（2×2隧道結構），隧道中陽離子決定礦物種：Ba²⁺→hollandite，K⁺→cryptomelane，Pb²⁺→coronadite。自然界具端員成分的樣品不常見，隧道陽離子組成範圍很寬，常混生（見「Mn 隧道氧化物文獻」頁）", src:"Handbook of Mineralogy — Hollandite；Post (1999) PNAS 96:3447"},
+  {name:"Cryptomelane", zh:"隱鉀錳礦", formula:"KMn₈O₁₆", colorTag:"黑-鋼灰", color:"資料未直接查證，屬hollandite族，一般預期與同族黑色、灰色相近", luster:"資料未直接查證", note:"1942年為釐清原本統稱「psilomelane」的錳氧化物礦物而提出的名稱，1982年經IMA正式核准。與hollandite僅靠EDS成分常難以分開，Raman是較可靠的區分方法（Bernardini et al. 2019）", src:"Wikipedia — Cryptomelane；Bernardini et al. (2019) J. Raman Spectrosc. 50:873–888"},
   {name:"Coronadite", zh:"銅硬錳礦", formula:"PbMn₈O₁₆", colorTag:"黑-鋼灰", color:"資料未直接查證，屬hollandite族，一般預期與同族黑色、灰色相近", luster:"資料未直接查證", note:"隧道中陽離子為Pb²⁺，其餘結構特徵與hollandite、cryptomelane相同", src:"USPTO patent text（hollandite-cryptomelane-coronadite family）"}
 ];
 
