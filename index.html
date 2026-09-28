@@ -446,6 +446,33 @@
   .note-link a{color:var(--interference);text-decoration:none;word-break:break-all;}
   .note-link a:hover{text-decoration:underline;}
   .note-actions{display:flex;gap:8px;margin-top:10px;}
+  /* ===== 內容編輯模式 ===== */
+  #petroEditBtn{
+    position:fixed;right:18px;bottom:18px;z-index:60;
+    background:var(--panel);border:1px solid var(--interference);color:var(--interference);
+    font-family:'IBM Plex Sans', sans-serif;font-size:0.86rem;
+    padding:9px 16px;border-radius:20px;cursor:pointer;
+    box-shadow:0 2px 10px rgba(0,0,0,0.4);
+  }
+  #petroEditBtn:hover{background:var(--interference-soft);}
+  body.editing #petroEditBtn{background:var(--interference);color:var(--bg);}
+  #petroEditBar{
+    position:fixed;left:220px;right:0;bottom:0;z-index:50;display:none;
+    flex-wrap:wrap;gap:8px;align-items:center;padding:12px 150px 12px 18px;
+    background:var(--panel);border-top:1px solid var(--interference);
+  }
+  @media (max-width:760px){ #petroEditBar{left:0;padding-right:18px;padding-bottom:64px;} }
+  #petroEditMsg{flex:1 1 100%;font-size:0.8rem;color:var(--text-dim);}
+  #petroEditMsg.warn{color:var(--ochre);}
+  body.editing main{padding-bottom:180px;}
+  section.page[contenteditable="true"]{
+    outline:1px dashed var(--interference);outline-offset:10px;caret-color:var(--interference);
+  }
+  .edit-ctl{display:inline-flex;gap:6px;margin-left:10px;vertical-align:middle;}
+  .ref > .edit-ctl,.mineral-card > .edit-ctl,.glossary-item > .edit-ctl,.step-body > .edit-ctl{display:flex;margin:10px 0 0 0;}
+  .edit-add{margin:0 0 16px 0;}
+  .edit-add .note-form{margin-top:12px;margin-bottom:0;}
+
   ::-webkit-scrollbar{width:8px;}
   ::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
 </style>
@@ -826,6 +853,7 @@ function renderSteps(){
   steps.forEach((s,i)=>{
     const row = document.createElement('div');
     row.className = 'step';
+    row.setAttribute('data-idx', i);
     row.innerHTML = `
       <div class="step-check" data-idx="${i}">✓</div>
       <div class="step-body">
@@ -864,6 +892,7 @@ function renderGlossary(){
   glossary.forEach((g,i)=>{
     const item = document.createElement('div');
     item.className = 'glossary-item';
+    item.setAttribute('data-idx', i);
     item.innerHTML = `
       <div class="term-row" data-idx="${i}">
         <span class="term-en">${g.en}</span>
@@ -920,6 +949,7 @@ function renderMineralList(){
   filtered.forEach(m=>{
     const card = document.createElement('div');
     card.className = 'mineral-card';
+    card.setAttribute('data-idx', mineralData.indexOf(m));
     card.innerHTML = `
       <h3>${m.name} <span class="mineral-formula">${m.formula}</span></h3>
       <div class="mineral-meta">
@@ -1178,6 +1208,381 @@ renderMineralList();
     render();
   }
   init();
+})();
+
+// ===== 內容編輯模式（修改存在瀏覽器；可下載更新後的 index.html） =====
+(function(){
+  const OKEY = 'petro_overrides_v1';
+  const SITE_VERSION = '2026-09-28';
+  const STATIC_IDS = ['veindendrite','grain','photoindex','literature'];
+  const ARR = { mineralData: mineralData, glossary: glossary, steps: steps };
+  const LISTS = {
+    steps: { box:'stepList', item:'.step', label:'步驟', fields:[['t','標題',false],['d','說明',true]] },
+    glossary: { box:'glossaryList', item:'.glossary-item', label:'詞彙', fields:[['en','英文名稱',false],['zh','中文名稱',false],['detail','定義',true],['src','出處',false]] },
+    mineralData: { box:'mineralList', item:'.mineral-card', label:'礦物', fields:[['name','名稱',false],['zh','中文名',false],['formula','化學式',false],['colorTag','顏色標籤（檢索頁篩選用）',false],['color','顏色',false],['luster','光澤',false],['note','備註',true],['src','出處',false]] }
+  };
+  const PAGE_DATA = { decision:'steps', glossary:'glossary', mineralsearch:'mineralData' };
+  let editing = false;
+  let versionMismatch = false;
+  let saveTimer = null;
+
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function unesc(s){ return String(s==null?'':s).replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&amp;/g,'&'); }
+
+  function sanitize(html){
+    const t = document.createElement('template');
+    t.innerHTML = String(html);
+    t.content.querySelectorAll('script,iframe,object,embed,link,style,meta,base,form').forEach(n => n.remove());
+    t.content.querySelectorAll('*').forEach(el => {
+      Array.from(el.attributes).forEach(a => {
+        const n = a.name.toLowerCase();
+        if (n.indexOf('on') === 0 || ((n === 'href' || n === 'src' || n === 'xlink:href') && /^\s*(javascript|data):/i.test(a.value))) el.removeAttribute(a.name);
+      });
+    });
+    return t.innerHTML;
+  }
+
+  function getStore(){ try { const o = JSON.parse(localStorage.getItem(OKEY)); return (o && typeof o === 'object') ? o : {}; } catch(e){ return {}; } }
+  function putStore(o){
+    o.ver = SITE_VERSION;
+    try { localStorage.setItem(OKEY, JSON.stringify(o)); return true; }
+    catch(e){ msg('無法儲存到瀏覽器，請用「匯出修改」備份', true); return false; }
+  }
+  function hasOverrides(st){ return !!(st && ((st.sections && Object.keys(st.sections).length) || (st.data && Object.keys(st.data).length))); }
+
+  function serialize(sec){
+    const clone = sec.cloneNode(true);
+    clone.querySelectorAll('.edit-ctl').forEach(n => n.remove());
+    clone.querySelectorAll('[contenteditable]').forEach(n => n.removeAttribute('contenteditable'));
+    clone.removeAttribute('contenteditable');
+    return clone.innerHTML;
+  }
+  function saveSection(sec){
+    const id = sec.id.replace('page-','');
+    const st = getStore(); st.sections = st.sections || {};
+    st.sections[id] = serialize(sec);
+    putStore(st);
+  }
+  function saveData(name){
+    const st = getStore(); st.data = st.data || {};
+    st.data[name] = ARR[name].slice();
+    putStore(st);
+  }
+
+  // ---- 套用已存的修改 ----
+  function cleanItem(o){
+    const r = {};
+    Object.keys(o).forEach(k => { r[k] = sanitize(String(o[k])); });
+    return r;
+  }
+  function applyStored(){
+    const st = getStore();
+    if (st.ver && st.ver !== SITE_VERSION && hasOverrides(st)) versionMismatch = true;
+    let dataChanged = false;
+    if (st.data) Object.keys(ARR).forEach(k => {
+      if (Array.isArray(st.data[k])) {
+        const items = st.data[k].filter(x => x && typeof x === 'object').map(cleanItem);
+        ARR[k].splice(0, ARR[k].length, ...items);
+        dataChanged = true;
+      }
+    });
+    if (st.sections) STATIC_IDS.forEach(id => {
+      const sec = document.getElementById('page-' + id);
+      if (sec && typeof st.sections[id] === 'string') sec.innerHTML = sanitize(st.sections[id]);
+    });
+    return dataChanged;
+  }
+
+  // ---- 包裝原本的 render 函式，加上編輯按鈕 ----
+  function makeCtl(inner){
+    const d = document.createElement('div');
+    d.className = 'edit-ctl';
+    d.setAttribute('contenteditable','false');
+    d.innerHTML = inner;
+    return d;
+  }
+  const LIST_CTL = '<button class="btn small" data-x="edit">編輯</button><button class="btn small danger" data-x="del">刪除</button>';
+  function decorateAdd(name){
+    const L = LISTS[name];
+    const box = document.getElementById(L.box);
+    if (!box) return;
+    const parent = box.parentNode;
+    parent.querySelectorAll('.edit-add[data-for="' + name + '"]').forEach(n => n.remove());
+    if (!editing) return;
+    const div = document.createElement('div');
+    div.className = 'edit-add';
+    div.setAttribute('data-for', name);
+    div.innerHTML = '<button class="btn primary" data-x="add" data-for="' + name + '">＋ 新增' + L.label + '</button><div class="edit-form-slot"></div>';
+    parent.insertBefore(div, box);
+  }
+  function decorateList(name){
+    decorateAdd(name);
+    if (!editing) return;
+    const L = LISTS[name];
+    const box = document.getElementById(L.box);
+    if (!box) return;
+    box.querySelectorAll(L.item).forEach(el => {
+      const target = name === 'steps' ? (el.querySelector('.step-body') || el) : el;
+      target.appendChild(makeCtl(LIST_CTL));
+    });
+  }
+  ['renderSteps','renderGlossary','renderMineralList'].forEach(fnName => {
+    const orig = window[fnName];
+    const name = fnName === 'renderSteps' ? 'steps' : fnName === 'renderGlossary' ? 'glossary' : 'mineralData';
+    window[fnName] = function(){ orig.apply(this, arguments); decorateList(name); };
+  });
+
+  // ---- 表單（陣列型內容） ----
+  function slotFor(name){
+    let slot = document.querySelector('.edit-add[data-for="' + name + '"] .edit-form-slot');
+    if (!slot) { decorateAdd(name); slot = document.querySelector('.edit-add[data-for="' + name + '"] .edit-form-slot'); }
+    return slot;
+  }
+  function openForm(name, idx){
+    const L = LISTS[name];
+    const slot = slotFor(name);
+    if (!slot) return;
+    const item = idx == null ? {} : ARR[name][idx];
+    slot.innerHTML = '<div class="note-form" data-name="' + name + '" data-idx="' + (idx == null ? '' : idx) + '">'
+      + L.fields.map(f => '<div class="field"><label>' + esc(f[1]) + '</label>'
+        + (f[2] ? '<textarea data-key="' + f[0] + '">' + esc(unesc(item[f[0]] || '')) + '</textarea>'
+                : '<input type="text" data-key="' + f[0] + '" value="' + esc(unesc(item[f[0]] || '')) + '">') + '</div>').join('')
+      + '<div class="actions"><button class="btn primary" data-x="save">' + (idx == null ? '新增' : '儲存') + '</button><button class="btn" data-x="cancel">取消</button></div></div>';
+    const first = slot.querySelector('input,textarea'); if (first) first.focus();
+  }
+  function saveForm(formEl){
+    const name = formEl.getAttribute('data-name');
+    const idxRaw = formEl.getAttribute('data-idx');
+    const L = LISTS[name];
+    const vals = {};
+    formEl.querySelectorAll('[data-key]').forEach(el => { vals[el.getAttribute('data-key')] = esc(el.value.trim()); });
+    if (!vals[L.fields[0][0]]) { alert('「' + L.fields[0][1] + '」不能是空的'); return; }
+    if (idxRaw === '') {
+      const obj = {};
+      L.fields.forEach(f => { obj[f[0]] = vals[f[0]] || ''; });
+      ARR[name].push(obj);
+    } else {
+      Object.assign(ARR[name][Number(idxRaw)], vals);
+    }
+    saveData(name);
+    rerender(name);
+    msg(idxRaw === '' ? '已新增，並存在這個瀏覽器' : '已儲存，並存在這個瀏覽器');
+  }
+  function rerender(name){
+    if (name === 'steps') { doneSteps.clear(); renderSteps(); updateProgress(); }
+    else if (name === 'glossary') renderGlossary();
+    else { renderColorChips(); renderMineralList(); }
+  }
+
+  // ---- 靜態頁：複製／刪除列 ----
+  function staticItems(sec){
+    return Array.from(sec.querySelectorAll('.photo-table tr')).filter(tr => !tr.querySelector('th')).concat(Array.from(sec.querySelectorAll('.ref')));
+  }
+  function decorateStatic(sec){
+    sec.querySelectorAll('.edit-ctl').forEach(n => n.remove());
+    if (!editing) return;
+    staticItems(sec).forEach(el => {
+      const host = el.tagName === 'TR' ? el.lastElementChild : el;
+      if (host) host.appendChild(makeCtl('<button class="btn small" data-x="dup" title="複製這一項">＋ 複製</button><button class="btn small danger" data-x="rowdel">× 刪除</button>'));
+    });
+  }
+  function activeSection(){ return document.querySelector('section.page.active'); }
+  function activeId(){ const a = activeSection(); return a ? a.id.replace('page-','') : ''; }
+  function refreshStatic(){
+    STATIC_IDS.forEach(id => {
+      const sec = document.getElementById('page-' + id);
+      if (!sec) return;
+      sec.removeAttribute('contenteditable');
+      sec.querySelectorAll('.edit-ctl').forEach(n => n.remove());
+    });
+    const a = activeSection();
+    if (editing && a && STATIC_IDS.indexOf(a.id.replace('page-','')) !== -1) {
+      a.setAttribute('contenteditable','true');
+      decorateStatic(a);
+    }
+    updateMsg();
+  }
+
+  // ---- 工具列 ----
+  let btn, bar, msgEl;
+  function msg(text, warn){ if (!msgEl) return; msgEl.textContent = text; msgEl.className = warn ? 'warn' : ''; }
+  function updateMsg(){
+    if (!editing) return;
+    const id = activeId();
+    let t;
+    if (STATIC_IDS.indexOf(id) !== -1) t = '編輯中：直接點文字修改；每個項目旁的「＋ 複製」「× 刪除」可增減條目。修改自動存在這個瀏覽器。';
+    else if (PAGE_DATA[id]) t = '編輯中：用每個條目的「編輯」「刪除」和上方「＋ 新增」修改。修改自動存在這個瀏覽器。';
+    else t = '這一頁沒有可編輯的內容。';
+    if (versionMismatch) t += '（網站已更新，您的本機修改可能蓋住新內容，必要時用「還原本頁／全部」。）';
+    msg(t, versionMismatch);
+  }
+  function setEditing(on){
+    editing = on;
+    document.body.classList.toggle('editing', on);
+    bar.style.display = on ? 'flex' : 'none';
+    btn.textContent = on ? '✓ 完成編輯' : '✎ 編輯模式';
+    doneSteps.clear();
+    renderSteps(); renderGlossary(); renderColorChips(); renderMineralList(); updateProgress();
+    refreshStatic();
+  }
+  function buildUi(){
+    btn = document.createElement('button');
+    btn.id = 'petroEditBtn'; btn.textContent = '✎ 編輯模式';
+    document.body.appendChild(btn);
+    bar = document.createElement('div');
+    bar.id = 'petroEditBar';
+    bar.innerHTML = '<button class="btn" data-bar="link">插入連結</button><button class="btn" data-bar="unlink">取消連結</button>'
+      + '<button class="btn primary" data-bar="bake">下載更新後的 index.html</button>'
+      + '<button class="btn" data-bar="export">匯出修改</button><button class="btn" data-bar="import">匯入修改</button>'
+      + '<button class="btn danger" data-bar="resetpage">還原本頁</button><button class="btn danger" data-bar="resetall">還原全部</button>'
+      + '<input type="file" id="petroImport" accept="application/json,.json" style="display:none"><div id="petroEditMsg"></div>';
+    document.body.appendChild(bar);
+    msgEl = bar.querySelector('#petroEditMsg');
+    btn.addEventListener('click', () => setEditing(!editing));
+    bar.addEventListener('mousedown', e => { if (e.target.closest('button')) e.preventDefault(); });
+    bar.addEventListener('click', onBar);
+    bar.querySelector('#petroImport').addEventListener('change', onImportFile);
+  }
+
+  function download(text, filename, type){
+    const blob = new Blob([text], {type: type || 'text/plain'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  function bakeSource(src){
+    let out = src;
+    STATIC_IDS.forEach(id => {
+      const sec = document.getElementById('page-' + id);
+      if (!sec) return;
+      const html = serialize(sec);
+      const re = new RegExp('(<section class="page[^"]*" id="page-' + id + '">)([\\s\\S]*?)(</section>)');
+      out = out.replace(re, (m, a, b, c) => a + html + c);
+    });
+    Object.keys(ARR).forEach(name => {
+      const re = new RegExp('const ' + name + ' = \\[[\\s\\S]*?\\n\\];');
+      const text = 'const ' + name + ' = ' + JSON.stringify(ARR[name], null, 2).replace(/</g, '\\u003c') + ';';
+      out = out.replace(re, () => text);
+    });
+    return out;
+  }
+  async function downloadBaked(){
+    if (location.protocol === 'file:') { alert('這個功能需要在網站（https 網址）上使用，請用您的 GitHub Pages 網址開啟。'); return; }
+    let src;
+    try {
+      const r = await fetch(location.href.split('#')[0].split('?')[0], {cache:'no-store'});
+      if (!r.ok) throw new Error('bad status');
+      src = await r.text();
+    } catch(e){ alert('無法取得網站原始檔，請稍後再試。'); return; }
+    if (src.indexOf('id="page-veindendrite"') === -1) { alert('取得的檔案不是預期的網站檔案，已取消。'); return; }
+    download(bakeSource(src), 'index.html', 'text/html');
+    msg('已下載 index.html。到 GitHub 用它取代舊的 index.html 並 Commit，修改就會公開。上傳完成後可按「還原全部」清掉本機修改。');
+  }
+  function onBar(e){
+    const b = e.target.closest('button[data-bar]');
+    if (!b) return;
+    const act = b.getAttribute('data-bar');
+    const a = activeSection();
+    if (act === 'link') {
+      if (!a || a.getAttribute('contenteditable') !== 'true') { alert('請先在可編輯的文字裡選取要加連結的字。'); return; }
+      const url = prompt('連結網址（需以 http:// 或 https:// 開頭）：', 'https://');
+      if (!url) return;
+      if (!/^https?:\/\//i.test(url.trim())) { alert('網址需以 http:// 或 https:// 開頭'); return; }
+      document.execCommand('createLink', false, url.trim());
+      a.querySelectorAll('a:not([target])').forEach(x => { x.setAttribute('target','_blank'); x.setAttribute('rel','noopener noreferrer'); });
+      saveSection(a);
+    } else if (act === 'unlink') {
+      if (a && a.getAttribute('contenteditable') === 'true') { document.execCommand('unlink'); saveSection(a); }
+    } else if (act === 'bake') {
+      downloadBaked();
+    } else if (act === 'export') {
+      download(JSON.stringify(getStore(), null, 2), 'petrography-edits.json', 'application/json');
+    } else if (act === 'import') {
+      bar.querySelector('#petroImport').click();
+    } else if (act === 'resetpage') {
+      const id = activeId(); const st = getStore();
+      if (STATIC_IDS.indexOf(id) !== -1 && st.sections && st.sections[id] != null) { if (!confirm('還原本頁到網站原本的內容？您在這一頁的修改會消失。')) return; delete st.sections[id]; }
+      else if (PAGE_DATA[id] && st.data && st.data[PAGE_DATA[id]] != null) { if (!confirm('還原本頁到網站原本的內容？您在這一頁的修改會消失。')) return; delete st.data[PAGE_DATA[id]]; }
+      else { alert('這一頁沒有本機修改可還原。'); return; }
+      putStore(st); location.reload();
+    } else if (act === 'resetall') {
+      if (!confirm('還原全部頁面到網站原本的內容？所有本機修改會消失（筆記庫不受影響）。建議先「匯出修改」備份。')) return;
+      try { localStorage.removeItem(OKEY); } catch(err){}
+      location.reload();
+    }
+  }
+  function onImportFile(e){
+    const f = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+      let o; try { o = JSON.parse(r.result); } catch(err){ alert('這不是有效的 JSON 檔案'); return; }
+      if (!o || typeof o !== 'object' || Array.isArray(o)) { alert('格式不符'); return; }
+      const st = { sections:{}, data:{} };
+      if (o.sections && typeof o.sections === 'object') STATIC_IDS.forEach(id => { if (typeof o.sections[id] === 'string') st.sections[id] = sanitize(o.sections[id]); });
+      if (o.data && typeof o.data === 'object') Object.keys(ARR).forEach(k => { if (Array.isArray(o.data[k])) st.data[k] = o.data[k].filter(x => x && typeof x === 'object').map(cleanItem); });
+      if (!confirm('匯入會取代目前的所有本機修改。確定嗎？')) return;
+      putStore(st); location.reload();
+    };
+    r.readAsText(f);
+  }
+
+  // ---- 全域事件 ----
+  document.addEventListener('click', e => {
+    const x = e.target.closest('[data-x]');
+    if (!x || !editing) return;
+    const act = x.getAttribute('data-x');
+    if (act === 'add') { openForm(x.getAttribute('data-for'), null); return; }
+    if (act === 'cancel') { const s = x.closest('.edit-form-slot'); if (s) s.innerHTML = ''; return; }
+    if (act === 'save') { saveForm(x.closest('.note-form')); return; }
+    if (act === 'edit' || act === 'del') {
+      const name = x.closest('.step') ? 'steps' : x.closest('.glossary-item') ? 'glossary' : x.closest('.mineral-card') ? 'mineralData' : null;
+      const el = x.closest('.step, .glossary-item, .mineral-card');
+      if (!name || !el) return;
+      const idx = Number(el.getAttribute('data-idx'));
+      if (isNaN(idx) || !ARR[name][idx]) return;
+      if (act === 'edit') { openForm(name, idx); return; }
+      if (!confirm('確定刪除這一項？（可以用「還原本頁」回到網站原本的內容）')) return;
+      ARR[name].splice(idx, 1);
+      saveData(name); rerender(name);
+      return;
+    }
+    if (act === 'dup' || act === 'rowdel') {
+      const item = x.closest('tr, .ref');
+      const sec = x.closest('section.page');
+      if (!item || !sec) return;
+      if (act === 'dup') {
+        const c = item.cloneNode(true);
+        c.querySelectorAll('.edit-ctl').forEach(n => n.remove());
+        item.parentNode.insertBefore(c, item.nextSibling);
+      } else {
+        if (!confirm('確定刪除這一項？')) return;
+        item.remove();
+      }
+      decorateStatic(sec); saveSection(sec);
+    }
+  });
+  document.addEventListener('input', e => {
+    const sec = e.target && e.target.closest ? e.target.closest('section.page[contenteditable="true"]') : null;
+    if (!sec || !editing) return;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveSection(sec), 400);
+  });
+  document.addEventListener('paste', e => {
+    const sec = e.target && e.target.closest ? e.target.closest('section.page[contenteditable="true"]') : null;
+    if (!sec || !editing) return;
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+    document.execCommand('insertText', false, text);
+  });
+  document.querySelectorAll('.navlink').forEach(b => b.addEventListener('click', () => { if (editing) refreshStatic(); }));
+
+  // ---- 啟動 ----
+  buildUi();
+  if (applyStored()) { doneSteps.clear(); renderSteps(); renderGlossary(); renderColorChips(); renderMineralList(); updateProgress(); }
+  window.petroEditor = { bake: bakeSource, setEditing: setEditing, store: getStore };
 })();
 </script>
 </body>
