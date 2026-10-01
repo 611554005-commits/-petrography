@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EDS 數據整理工具</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#191c1e; --panel:#22262a; --panel-raised:#2a2f34; --line:#3a4045;
+    --text:#e6e1d6; --text-dim:#9aa0a3;
+    --interference:#5b8aa0; --interference-soft:rgba(91,138,160,0.14);
+    --ochre:#c88a45; --mn:#9a4d3d; --mn-soft:rgba(154,77,61,0.15);
+    --flag:rgba(220,110,110,0.28);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;line-height:1.6;font-size:15px;}
+  main{max-width:980px;margin:0 auto;padding:40px 24px 100px;}
+  h1,h2,h3{font-family:'Spectral',serif;font-weight:600;margin:0 0 .5em;}
+  h1{font-size:1.6rem;} h2{font-size:1.15rem;margin-top:28px;} h3{font-size:1rem;color:var(--ochre);margin-top:22px;}
+  .lede{color:var(--text-dim);max-width:70ch;margin:0 0 24px;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px 20px;margin-bottom:16px;}
+  .drop{border:1.5px dashed var(--line);border-radius:8px;padding:34px 20px;text-align:center;color:var(--text-dim);cursor:pointer;transition:all .15s;background:var(--panel);}
+  .drop:hover,.drop.over{border-color:var(--interference);color:var(--interference);background:var(--interference-soft);}
+  .drop b{color:var(--text);}
+  .btn{background:var(--panel-raised);border:1px solid var(--line);color:var(--text);font-family:inherit;font-size:.86rem;padding:8px 14px;border-radius:6px;cursor:pointer;}
+  .btn:hover{border-color:var(--interference);color:var(--interference);}
+  .btn.primary{background:var(--interference-soft);border-color:var(--interference);color:var(--interference);}
+  .btn:disabled{opacity:.4;cursor:default;}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+  .muted{color:var(--text-dim);font-size:.85rem;}
+  .warn{color:var(--ochre);}
+  .bad{color:#e08a8a;}
+  .ok{color:#8fc3a0;}
+  details{margin-top:14px;} summary{cursor:pointer;color:var(--interference);font-size:.9rem;}
+  label.chk{display:inline-flex;gap:6px;align-items:center;margin-right:16px;font-size:.9rem;}
+  textarea,input[type=text],input[type=number]{background:var(--panel-raised);border:1px solid var(--line);border-radius:6px;color:var(--text);font-family:inherit;font-size:.86rem;padding:8px 10px;}
+  textarea{width:100%;min-height:140px;font-family:ui-monospace,Menlo,Consolas,monospace;}
+  input[type=number]{width:80px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;} @media(max-width:700px){.grid2{grid-template-columns:1fr;}}
+  .tbl-wrap{overflow-x:auto;margin:6px 0 4px;}
+  table.eds{border-collapse:collapse;font-size:.85rem;margin:0;}
+  table.eds th,table.eds td{border:1px solid var(--line);padding:4px 10px;text-align:center;min-width:56px;}
+  table.eds th{background:var(--panel-raised);font-weight:600;}
+  table.eds td.lab{text-align:left;font-style:italic;background:var(--panel);}
+  table.eds td.lab.extra{color:var(--mn);}
+  table.eds td.tot{font-weight:600;}
+  table.eds td.flag{background:var(--flag);}
+  table.eds td.neg{color:#ff9d9d;font-weight:600;background:rgba(255,160,60,.22);}
+  .site-title{font-family:'Spectral',serif;color:#8fb7cc;font-weight:600;margin:16px 0 4px;}
+  ul.issues{margin:6px 0 0 18px;padding:0;font-size:.85rem;}
+</style>
+</head>
+<body>
+<main>
+  <h1>EDS 數據整理工具</h1>
+  <p class="lede">把 INCA 匯出的 .xls／.xlsx 拖進來，每個測點區（Site）整理成一張表：氧化物為列、測點為欄，並自動檢查數字。檔案只在您的瀏覽器裡處理，不會上傳到任何地方。</p>
+
+  <div class="drop" id="drop"><b>把檔案拖到這裡</b>，或點一下選檔<br><span class="muted">支援 .xls、.xlsx（INCA 匯出格式：欄位標題那一列的第一格是 Spectrum）</span></div>
+  <input type="file" id="file" accept=".xls,.xlsx,.xlsm" style="display:none">
+  <div id="libmsg" class="muted" style="margin-top:8px"></div>
+
+  <div id="loaded" style="display:none">
+    <div class="card" style="margin-top:18px">
+      <div class="row"><b id="fname"></b><span class="muted" id="fsummary"></span></div>
+      <div id="sheetpick" style="margin-top:10px"></div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn primary" id="dl">下載 Excel（.xlsx）</button>
+        <button class="btn" id="copy">複製全部（貼到 Excel）</button>
+        <span class="muted" id="status"></span>
+      </div>
+    </div>
+
+    <div class="card" id="checks"></div>
+
+    <details class="card">
+      <summary>設定（氧化物名稱、順序、Total 警示範圍）</summary>
+      <p class="muted">INCA 匯出的數字本來就是氧化物重量百分比（compound%），工具只是把欄名換成氧化物名稱，<b>不重新計算數值</b>。名稱是依慣例假設的，實際用哪種氧化物以 INCA 的設定為準，不符時請在這裡改。</p>
+      <div class="grid2">
+        <div><div class="muted">元素＝氧化物名稱（每行一個）</div><textarea id="mapTxt" spellcheck="false"></textarea></div>
+        <div>
+          <div class="muted">主要順序（元素符號，逗號分隔）</div><textarea id="mainTxt" spellcheck="false" style="min-height:60px"></textarea>
+          <div class="muted" style="margin-top:8px">附加順序（接在主要順序後面，棕色斜體；兩份清單都沒有的元素再接在最後）</div><textarea id="extraTxt" spellcheck="false" style="min-height:60px"></textarea>
+          <div class="row" style="margin-top:10px">
+            <span class="muted">Total 大於</span><input type="number" id="hi" step="1"><span class="muted">或小於</span><input type="number" id="lo" step="1"><span class="muted">標淡紅色</span>
+          </div>
+          <div class="row" style="margin-top:12px"><button class="btn" id="reset">還原預設</button></div>
+        </div>
+      </div>
+    </details>
+
+    <div id="results"></div>
+  </div>
+</main>
+
+<script>
+/* ============ CORE（純函式，可單獨測試） ============ */
+/* CORE-START */
+const DEFAULT_MAP_TEXT = [
+ 'F=F','Na=Na₂O','Mg=MgO','Al=Al₂O₃','Si=SiO₂','P=P₂O₅','S=SO₂','Cl=Cl','K=K₂O','Ca=CaO','Sc=Sc₂O₃','Ti=TiO₂','V=V₂O₅','Cr=Cr₂O₃','Mn=MnO','Fe=FeO','Co=CoO','Ni=NiO','Cu=CuO','Zn=ZnO','Ga=Ga₂O₃','Ge=GeO₂','As=As₂O₃','Se=SeO₂','Rb=Rb₂O','Sr=SrO','Y=Y₂O₃','Zr=ZrO₂','Nb=Nb₂O₅','Mo=MoO₃','Ag=Ag₂O','Cd=CdO','Sn=SnO₂','Sb=Sb₂O₃','Te=TeO₂','Cs=Cs₂O','Ba=BaO','La=La₂O₃','Ce=Ce₂O₃','Pr=Pr₂O₃','Nd=Nd₂O₃','Sm=Sm₂O₃','Eu=Eu₂O₃','Gd=Gd₂O₃','Tb=Tb₂O₃','Dy=Dy₂O₃','Ho=Ho₂O₃','Er=Er₂O₃','Tm=Tm₂O₃','Yb=Yb₂O₃','Lu=Lu₂O₃','Hf=HfO₂','Ta=Ta₂O₅','W=WO₃','Pt=PtO','Au=Au₂O','Pb=PbO','Bi=Bi₂O₃','Th=ThO₂','U=UO₂'
+].join('\n');
+const DEFAULT_MAIN = 'Si, Ti, Al, Fe, Mn, Mg, Ca, Na, K, Ba, Sr, La, Ce, Tm';
+const DEFAULT_EXTRA = 'P, S, Te, Y, Zr, Nb, Ag, Nd, Ta';
+const DEFAULT_HI = 105, DEFAULT_LO = 90;
+
+function str(v){ return v == null ? '' : String(v).trim(); }
+function toNum(v){
+  if (typeof v === 'number') return isFinite(v) ? v : null;
+  if (typeof v === 'string') { const t = v.trim().replace(/,/g,''); if (t !== '' && !isNaN(Number(t))) return Number(t); }
+  return null;
+}
+function parseList(txt){ return String(txt||'').split(/[,，、\s]+/).map(s=>s.trim()).filter(Boolean); }
+function parseMap(txt){
+  const m = {};
+  String(txt||'').split(/\r?\n/).forEach(line => {
+    const k = line.match(/^\s*([A-Za-z]{1,3})\s*[=＝]\s*(.+?)\s*$/);
+    if (k) m[k[1]] = k[2];
+  });
+  return m;
+}
+
+/* rows: 二維陣列（試算表每一列）。回傳測點區陣列。 */
+function parseSheetRows(rows){
+  const blocks = []; let site = null; let i = 0;
+  while (i < rows.length) {
+    const row = rows[i] || [];
+    const firstNonEmpty = row.find(c => str(c) !== '');
+    if (typeof firstNonEmpty === 'string' && /^Site\s*:/i.test(firstNonEmpty.trim())) {
+      site = firstNonEmpty.trim().replace(/^Site\s*:\s*/i, '');
+    }
+    const idx = row.findIndex(c => str(c) === 'Spectrum');
+    if (idx !== -1) {
+      const header = [];
+      for (let c = idx; c < row.length; c++) { const nm = str(row[c]); if (nm !== '') header.push({col:c, name:nm}); }
+      const spectra = []; let j = i + 1;
+      while (j < rows.length) {
+        const r = rows[j] || []; const lab = str(r[idx]);
+        if (/^Spectrum\s+\d+/i.test(lab)) {
+          const vals = {}; let total = null; let inStats = '';
+          header.forEach(h => {
+            if (h.name === 'Spectrum') return;
+            if (h.name === 'In stats.') { inStats = str(r[h.col]); return; }
+            const n = toNum(r[h.col]);
+            if (h.name === 'Total') total = n; else if (n !== null) vals[h.name] = n;
+          });
+          spectra.push({label: lab, vals, total, inStats});
+        } else if (lab === '') { /* 空白列，略過 */ }
+        else break;
+        j++;
+      }
+      blocks.push({site, header: header.map(h=>h.name), spectra});
+      i = j;
+    } else i++;
+  }
+  return blocks;
+}
+
+function siteLabel(site, k){
+  if (!site) return '區塊 ' + (k+1);
+  const m = site.match(/^Site of Interest\s*(.+)$/i);
+  return m ? 'Site ' + m[1].trim() : site;
+}
+
+function makeSettings(o){
+  o = o || {};
+  return {
+    map: parseMap(o.mapTxt != null ? o.mapTxt : DEFAULT_MAP_TEXT),
+    main: parseList(o.mainTxt != null ? o.mainTxt : DEFAULT_MAIN),
+    extra: parseList(o.extraTxt != null ? o.extraTxt : DEFAULT_EXTRA),
+    hi: o.hi != null && o.hi !== '' ? Number(o.hi) : DEFAULT_HI,
+    lo: o.lo != null && o.lo !== '' ? Number(o.lo) : DEFAULT_LO
+  };
+}
+
+/* 一個測點區 → 一張轉置後的氧化物表 */
+function buildTable(block, k, S){
+  const present = [];
+  block.spectra.forEach(sp => Object.keys(sp.vals).forEach(e => { if (!present.includes(e)) present.push(e); }));
+  const ordered = [];
+  S.main.forEach(e => { if (present.includes(e) && !ordered.some(o=>o.sym===e)) ordered.push({sym:e, kind:'main'}); });
+  S.extra.forEach(e => { if (present.includes(e) && !ordered.some(o=>o.sym===e)) ordered.push({sym:e, kind:'extra'}); });
+  present.forEach(e => { if (!ordered.some(o=>o.sym===e)) ordered.push({sym:e, kind:'other'}); });
+  const rows = ordered.map(o => ({
+    sym: o.sym, kind: o.kind, mapped: Object.prototype.hasOwnProperty.call(S.map, o.sym),
+    label: S.map[o.sym] || o.sym,
+    values: block.spectra.map(sp => (sp.vals[o.sym] === undefined ? null : sp.vals[o.sym]))
+  }));
+  return {
+    title: siteLabel(block.site, k),
+    cols: block.spectra.map(sp => sp.label.replace(/^Spectrum\s*/i, 'Sp ')),
+    rows, totals: block.spectra.map(sp => sp.total),
+    flags: block.spectra.map(sp => sp.total !== null && (sp.total > S.hi || sp.total < S.lo))
+  };
+}
+
+/* 自動檢查：Σ氧化物 ≈ Total、負值、未對應元素、Total 異常 */
+function checkTables(tables, tol){
+  tol = tol == null ? 0.05 : tol;
+  const out = {spectra:0, cells:0, sumBad:[], negative:[], unmapped:new Set(), flagged:[], noTotal:[]};
+  tables.forEach(t => {
+    t.cols.forEach((lab, c) => {
+      out.spectra++;
+      let sum = 0;
+      t.rows.forEach(r => {
+        const v = r.values[c];
+        if (v !== null) { out.cells++; sum += v; if (v < 0) out.negative.push(t.title + ' ' + lab + ' ' + r.label + ' = ' + v); }
+      });
+      const tot = t.totals[c];
+      if (tot === null) out.noTotal.push(t.title + ' ' + lab);
+      else if (Math.abs(sum - tot) > tol) out.sumBad.push({where:t.title + ' ' + lab, sum:Math.round(sum*100)/100, total:tot});
+      if (t.flags[c]) out.flagged.push(t.title + ' ' + lab + '（Total ' + tot + '）');
+    });
+    t.rows.forEach(r => { if (!r.mapped) out.unmapped.add(r.sym); });
+  });
+  out.unmapped = Array.from(out.unmapped);
+  return out;
+}
+
+function tablesToTSV(sheetTitle, tables){
+  const lines = [];
+  if (sheetTitle) lines.push(sheetTitle);
+  tables.forEach(t => {
+    lines.push(t.title);
+    lines.push(['Oxide'].concat(t.cols).join('\t'));
+    t.rows.forEach(r => lines.push([r.label].concat(r.values.map(v => v === null ? '' : String(Math.round(v*100)/100))).join('\t')));
+    lines.push(['Total'].concat(t.totals.map(v => v === null ? '' : String(Math.round(v*100)/100))).join('\t'));
+    lines.push(''); lines.push('');
+  });
+  return lines.join('\n');
+}
+/* CORE-END */
+
+/* ============ Excel 輸出（ExcelJS） ============ */
+function safeSheetName(name, used){
+  let n = String(name || 'Sheet').replace(/[\[\]:*?\/\\]/g, '_').slice(0, 28) || 'Sheet';
+  let cand = n, k = 2;
+  while (used.includes(cand.toLowerCase())) cand = n.slice(0, 26) + '_' + (k++);
+  used.push(cand.toLowerCase());
+  return cand;
+}
+async function buildWorkbook(sheetsOut){
+  const wb = new ExcelJS.Workbook();
+  const thin = {style:'thin', color:{argb:'FFCCCCCC'}};
+  const border = {top:thin, left:thin, bottom:thin, right:thin};
+  const grayFill = {type:'pattern', pattern:'solid', fgColor:{argb:'FFF2F2F2'}};
+  const redFill = {type:'pattern', pattern:'solid', fgColor:{argb:'FFFCE4E4'}};
+  const negFill = {type:'pattern', pattern:'solid', fgColor:{argb:'FFFFE0B2'}};
+  const used = [];
+  sheetsOut.forEach(so => {
+    const ws = wb.addWorksheet(safeSheetName(so.name, used));
+    let r = 1, maxc = 1;
+    so.tables.forEach(t => {
+      const tt = ws.getCell(r, 1); tt.value = t.title; tt.font = {name:'Arial', bold:true, size:11, color:{argb:'FF1F4E78'}};
+      r++;
+      const h = ws.getCell(r, 1); h.value = 'Oxide'; h.font = {name:'Arial', bold:true, size:10}; h.fill = grayFill; h.border = border;
+      t.cols.forEach((lab, i) => { const c = ws.getCell(r, i+2); c.value = lab; c.font = {name:'Arial', bold:true, size:10}; c.fill = grayFill; c.border = border; c.alignment = {horizontal:'center'}; });
+      r++;
+      t.rows.forEach(row => {
+        const lc = ws.getCell(r, 1); lc.value = row.label; lc.border = border;
+        lc.font = row.kind === 'main' ? {name:'Arial', italic:true, size:10} : {name:'Arial', italic:true, size:10, color:{argb:'FF9A4D3D'}};
+        row.values.forEach((v, i) => {
+          const c = ws.getCell(r, i+2); c.border = border;
+          if (v !== null) { c.value = Math.round(v*100)/100; c.font = {name:'Arial', size:10, color: v < 0 ? {argb:'FFC00000'} : undefined}; c.alignment = {horizontal:'center'}; if (v < 0) c.fill = negFill; }
+        });
+        r++;
+      });
+      const tl = ws.getCell(r, 1); tl.value = 'Total'; tl.font = {name:'Arial', bold:true, size:10}; tl.border = border;
+      t.totals.forEach((v, i) => {
+        const c = ws.getCell(r, i+2); c.border = border; c.font = {name:'Arial', bold:true, size:10}; c.alignment = {horizontal:'center'};
+        if (v !== null) c.value = Math.round(v*100)/100;
+        if (t.flags[i]) c.fill = redFill;
+      });
+      maxc = Math.max(maxc, t.cols.length + 1);
+      r += 3;
+    });
+    ws.getColumn(1).width = 10;
+    for (let c = 2; c <= maxc; c++) ws.getColumn(c).width = 9;
+  });
+  return wb;
+}
+
+/* ============ 介面 ============ */
+(function(){
+  if (typeof document === 'undefined' || !document.getElementById('drop')) return;
+  const $ = id => document.getElementById(id);
+  const SKEY = 'eds_tool_settings_v1';
+  const LIBS = {
+    XLSX: ['https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js','https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'],
+    ExcelJS: ['https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js','https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js']
+  };
+  let state = null;           // {name, sheets:[{name, blocks, on}]}
+  let current = [];           // [{name, tables}]
+
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function loadScript(url){ return new Promise((res, rej) => { const s = document.createElement('script'); s.src = url; s.onload = res; s.onerror = () => rej(new Error('load fail')); document.head.appendChild(s); }); }
+  async function ensureLib(name){
+    if (typeof window[name] !== 'undefined') return true;
+    for (const u of LIBS[name]) { try { await loadScript(u); if (typeof window[name] !== 'undefined') return true; } catch(e){} }
+    return false;
+  }
+
+  function loadSettings(){
+    let o = {};
+    try { o = JSON.parse(localStorage.getItem(SKEY)) || {}; } catch(e){}
+    $('mapTxt').value = o.mapTxt != null ? o.mapTxt : DEFAULT_MAP_TEXT;
+    $('mainTxt').value = o.mainTxt != null ? o.mainTxt : DEFAULT_MAIN;
+    $('extraTxt').value = o.extraTxt != null ? o.extraTxt : DEFAULT_EXTRA;
+    $('hi').value = o.hi != null ? o.hi : DEFAULT_HI;
+    $('lo').value = o.lo != null ? o.lo : DEFAULT_LO;
+  }
+  function readSettings(){
+    const o = {mapTxt:$('mapTxt').value, mainTxt:$('mainTxt').value, extraTxt:$('extraTxt').value, hi:$('hi').value, lo:$('lo').value};
+    try { localStorage.setItem(SKEY, JSON.stringify(o)); } catch(e){}
+    return makeSettings(o);
+  }
+
+  async function handleFile(file){
+    if (!file) return;
+    $('libmsg').textContent = '讀取中…'; $('libmsg').className = 'muted';
+    if (!(await ensureLib('XLSX'))) { $('libmsg').textContent = '無法載入試算表函式庫，請確認網路連線後重試。'; $('libmsg').className = 'muted bad'; return; }
+    let buf;
+    try { buf = await new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = () => rej(fr.error); fr.readAsArrayBuffer(file); }); }
+    catch(e){ $('libmsg').textContent = '讀檔失敗。'; $('libmsg').className = 'muted bad'; return; }
+    let wb;
+    try { wb = XLSX.read(new Uint8Array(buf), {type:'array'}); } catch(e){ $('libmsg').textContent = '這個檔案無法解析，請確認是 .xls 或 .xlsx。'; $('libmsg').className = 'muted bad'; return; }
+    const sheets = wb.SheetNames.map(nm => {
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[nm], {header:1, defval:null, raw:true, blankrows:true});
+      const blocks = parseSheetRows(rows);
+      return {name:nm, blocks, on: blocks.length > 0};
+    });
+    state = {name:file.name, sheets};
+    const found = sheets.reduce((a,s)=>a+s.blocks.length, 0);
+    if (!found) { $('libmsg').textContent = '找不到 INCA 匯出格式（沒有第一格是 Spectrum 的標題列）。'; $('libmsg').className = 'muted bad'; $('loaded').style.display = 'none'; return; }
+    $('libmsg').textContent = '';
+    $('loaded').style.display = 'block';
+    $('fname').textContent = file.name;
+    $('fsummary').textContent = '找到 ' + found + ' 個測點區';
+    renderSheetPick(); render();
+  }
+
+  function renderSheetPick(){
+    const box = $('sheetpick'); box.innerHTML = '';
+    state.sheets.forEach((s, i) => {
+      const n = s.blocks.reduce((a,b)=>a+b.spectra.length, 0);
+      const l = document.createElement('label'); l.className = 'chk';
+      l.innerHTML = '<input type="checkbox" data-i="'+i+'"'+(s.on?' checked':'')+(s.blocks.length?'':' disabled')+'> ' + esc(s.name) + '（' + s.blocks.length + ' 區、' + n + ' 個測點）';
+      box.appendChild(l);
+    });
+    box.querySelectorAll('input').forEach(inp => inp.addEventListener('change', e => { state.sheets[Number(e.target.dataset.i)].on = e.target.checked; render(); }));
+    if (state.sheets.filter(s=>s.blocks.length).length > 1)
+      box.insertAdjacentHTML('beforeend', '<div class="muted" style="margin-top:6px">有多個工作表時請留意：同一個 Site 編號可能出現在不同工作表（可能是不同時段的匯出），不要直接合併當成同一組數據。</div>');
+  }
+
+  function render(){
+    const S = readSettings();
+    current = state.sheets.filter(s => s.on).map(s => ({name:s.name, tables: s.blocks.map((b,k) => buildTable(b, k, S))}));
+    const all = current.flatMap(c => c.tables);
+    const ck = checkTables(all);
+    // 檢查結果
+    let h = '<b>自動檢查</b><div class="muted" style="margin-top:4px">共 ' + ck.spectra + ' 個測點、' + ck.cells + ' 個數值。</div><ul class="issues">';
+    h += ck.sumBad.length ? '<li class="bad">氧化物加總 ≠ Total 的測點（誤差 > 0.05）：' + ck.sumBad.length + ' 個<br><span class="muted">' + ck.sumBad.slice(0,12).map(x => esc(x.where) + '：加總 ' + x.sum + ' / Total ' + x.total).join('<br>') + (ck.sumBad.length>12?'<br>…':'') + '</span></li>'
+                        : '<li class="ok">每個測點的氧化物加總都等於 Total（誤差 0.05 以內）。</li>';
+    if (ck.negative.length) h += '<li class="bad">有負值（通常是定量擬合失敗，數據不可信）：' + ck.negative.length + ' 個<br><span class="muted">' + ck.negative.slice(0,10).map(esc).join('<br>') + '</span></li>';
+    if (ck.noTotal.length) h += '<li class="warn">缺少 Total 的測點：' + ck.noTotal.length + ' 個</li>';
+    h += '<li class="' + (ck.flagged.length ? 'warn' : 'ok') + '">Total 在 ' + $('lo').value + '–' + $('hi').value + ' 以外（標淡紅色）：' + ck.flagged.length + ' 個</li>';
+    if (ck.unmapped.length) h += '<li class="warn">沒有對應氧化物名稱的元素（表中直接顯示元素符號，棕色）：' + ck.unmapped.map(esc).join('、') + '。可在「設定」裡補上。</li>';
+    h += '</ul>';
+    $('checks').innerHTML = h;
+    // 表格
+    let out = '';
+    current.forEach(c => {
+      out += '<h2>' + esc(c.name) + '</h2>';
+      c.tables.forEach(t => {
+        out += '<div class="site-title">' + esc(t.title) + '</div><div class="tbl-wrap"><table class="eds"><tr><th>Oxide</th>' + t.cols.map(x => '<th>' + esc(x) + '</th>').join('') + '</tr>';
+        t.rows.forEach(r => {
+          out += '<tr><td class="lab' + (r.kind !== 'main' ? ' extra' : '') + '">' + esc(r.label) + '</td>' + r.values.map(v => '<td class="' + (v !== null && v < 0 ? 'neg' : '') + '">' + (v === null ? '' : Math.round(v*100)/100) + '</td>').join('') + '</tr>';
+        });
+        out += '<tr><td class="lab" style="font-style:normal;font-weight:600">Total</td>' + t.totals.map((v,i) => '<td class="tot' + (t.flags[i] ? ' flag' : '') + '">' + (v === null ? '' : Math.round(v*100)/100) + '</td>').join('') + '</tr></table></div>';
+      });
+    });
+    $('results').innerHTML = out;
+    $('dl').disabled = $('copy').disabled = !current.length;
+  }
+
+  async function download(){
+    if (!(await ensureLib('ExcelJS'))) { $('status').textContent = '無法載入 Excel 輸出函式庫，請確認網路連線。'; return; }
+    $('status').textContent = '產生中…';
+    try {
+      const wb = await buildWorkbook(current);
+      const buf = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = (state.name || 'EDS').replace(/\.[^.]+$/, '') + '_各區表格.xlsx';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => { try { URL.revokeObjectURL(a.href); } catch(e){} }, 1500);
+      $('status').textContent = '已下載。';
+    } catch(e){ $('status').textContent = '產生失敗：' + e.message; }
+  }
+  async function copyAll(){
+    const text = current.map(c => tablesToTSV(current.length > 1 ? c.name : '', c.tables)).join('\n');
+    try { await navigator.clipboard.writeText(text); $('status').textContent = '已複製，可以直接貼到 Excel。'; }
+    catch(e){
+      const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); $('status').textContent = '已複製，可以直接貼到 Excel。'; } catch(e2){ $('status').textContent = '複製失敗，請改用下載。'; }
+      document.body.removeChild(ta);
+    }
+  }
+
+  // 事件
+  const drop = $('drop'), file = $('file');
+  drop.addEventListener('click', () => file.click());
+  file.addEventListener('change', e => { handleFile(e.target.files && e.target.files[0]); e.target.value = ''; });
+  ['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+  drop.addEventListener('drop', e => { const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; handleFile(f); });
+  ['mapTxt','mainTxt','extraTxt','hi','lo'].forEach(id => $(id).addEventListener('change', () => { if (state) render(); else readSettings(); }));
+  $('reset').addEventListener('click', () => {
+    $('mapTxt').value = DEFAULT_MAP_TEXT; $('mainTxt').value = DEFAULT_MAIN; $('extraTxt').value = DEFAULT_EXTRA; $('hi').value = DEFAULT_HI; $('lo').value = DEFAULT_LO;
+    if (state) render(); else readSettings();
+  });
+  $('dl').addEventListener('click', download);
+  $('copy').addEventListener('click', copyAll);
+  loadSettings();
+  // 預先載入函式庫（失敗也不影響，用到時會再試）
+  ensureLib('XLSX').then(ok => { if (!ok) { $('libmsg').textContent = '尚未連上函式庫（需要網路）。連上網路後再選檔即可。'; } });
+  window.__edsTool = {handleFile, render, state: () => state, current: () => current};
+})();
+</script>
+</body>
+</html>
